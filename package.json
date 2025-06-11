@@ -1,0 +1,19 @@
+{
+    "name": "poker-in-cmd-cli",
+    "version": "1.0.0",
+    "description": "A command-line Texas Hold'em poker game",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "test": "node src/test.js",
+        "start": "node src/index.js"
+    },
+    "keywords": [
+        "poker",
+        "texas-holdem",
+        "cli",
+        "game"
+    ],
+    "author": "",
+    "license": "MIT"
+}
