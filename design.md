@@ -26,12 +26,11 @@ src/
 ├── commands/              # 命令系统
 │   ├── CommandParser.js  # 命令解析器
 │   ├── CommandExecutor.js # 命令执行器
-│   └── commands/         # 具体命令实现
-│       ├── BetCommand.js
-│       ├── CallCommand.js
-│       ├── RaiseCommand.js
-│       ├── FoldCommand.js
-│       └── CheckCommand.js
+│   ├── BetCommand.js
+│   ├── CallCommand.js
+│   ├── RaiseCommand.js
+│   ├── FoldCommand.js
+│   └── CheckCommand.js
 │
 ├── utils/                # 工具类
 │   ├── Logger.js        # 日志工具
