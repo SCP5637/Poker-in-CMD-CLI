@@ -5,7 +5,7 @@ import { Player } from './src/core/Player.js';
 import { Table } from './src/core/Table.js';
 import { Game } from './src/core/Game.js';
 import { HandEvaluator } from './src/poker/HandEvaluator.js';
-import { Hand, HandRanking } from './src/poker/HandRanking.js';
+import { Hand, HandRanking, HandDescription } from './src/poker/HandRanking.js';
 
 // 测试函数
 function runTests() {
@@ -70,91 +70,181 @@ function testBasicGameFlow() {
     console.log("基本游戏流程测试完成\n");
 }
 
+// 牌型测试辅助函数
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
 // 测试牌型评估
 function testHandEvaluation() {
     console.log("测试3: 牌型评估");
     
-    // 测试同花顺
-    const straightFlushHand = [
-        new Card('A', 'S'),
-        new Card('K', 'S'),
-        new Card('Q', 'S'),
-        new Card('J', 'S'),
-        new Card('10', 'S')
+    // 定义所有牌型测试用例
+    const testCases = [
+        {
+            name: "皇家同花顺",
+            cards: [
+                new Card('A', 'S'),
+                new Card('K', 'S'),
+                new Card('Q', 'S'),
+                new Card('J', 'S'),
+                new Card('10', 'S')
+            ],
+            expected: HandRanking.ROYAL_FLUSH
+        },
+        {
+            name: "同花顺",
+            cards: [
+                new Card('K', 'H'),
+                new Card('Q', 'H'),
+                new Card('J', 'H'),
+                new Card('10', 'H'),
+                new Card('9', 'H')
+            ],
+            expected: HandRanking.STRAIGHT_FLUSH
+        },
+        {
+            name: "特殊同花顺(A-5-4-3-2)",
+            cards: [
+                new Card('A', 'D'),
+                new Card('5', 'D'),
+                new Card('4', 'D'),
+                new Card('3', 'D'),
+                new Card('2', 'D')
+            ],
+            expected: HandRanking.STRAIGHT_FLUSH
+        },
+        {
+            name: "四条",
+            cards: [
+                new Card('K', 'S'),
+                new Card('K', 'C'),
+                new Card('K', 'H'),
+                new Card('K', 'D'),
+                new Card('Q', 'S')
+            ],
+            expected: HandRanking.FOUR_OF_A_KIND
+        },
+        {
+            name: "葫芦",
+            cards: [
+                new Card('Q', 'S'),
+                new Card('Q', 'C'),
+                new Card('Q', 'H'),
+                new Card('J', 'D'),
+                new Card('J', 'S')
+            ],
+            expected: HandRanking.FULL_HOUSE
+        },
+        {
+            name: "同花",
+            cards: [
+                new Card('A', 'C'),
+                new Card('K', 'C'),
+                new Card('Q', 'C'),
+                new Card('J', 'C'),
+                new Card('9', 'C')
+            ],
+            expected: HandRanking.FLUSH
+        },
+        {
+            name: "顺子",
+            cards: [
+                new Card('10', 'S'),
+                new Card('9', 'H'),
+                new Card('8', 'D'),
+                new Card('7', 'C'),
+                new Card('6', 'S')
+            ],
+            expected: HandRanking.STRAIGHT
+        },
+        {
+            name: "三条",
+            cards: [
+                new Card('J', 'S'),
+                new Card('J', 'C'),
+                new Card('J', 'H'),
+                new Card('Q', 'D'),
+                new Card('K', 'S')
+            ],
+            expected: HandRanking.THREE_OF_A_KIND
+        },
+        {
+            name: "两对",
+            cards: [
+                new Card('10', 'S'),
+                new Card('10', 'C'),
+                new Card('9', 'H'),
+                new Card('9', 'D'),
+                new Card('K', 'S')
+            ],
+            expected: HandRanking.TWO_PAIR
+        },
+        {
+            name: "一对",
+            cards: [
+                new Card('A', 'S'),
+                new Card('A', 'C'),
+                new Card('K', 'H'),
+                new Card('Q', 'D'),
+                new Card('J', 'S')
+            ],
+            expected: HandRanking.ONE_PAIR
+        },
+        {
+            name: "高牌",
+            cards: [
+                new Card('A', 'S'),
+                new Card('K', 'C'),
+                new Card('Q', 'H'),
+                new Card('J', 'D'),
+                new Card('9', 'S')
+            ],
+            expected: HandRanking.HIGH_CARD
+        }
     ];
+
+    let passed = 0;
+    let failed = 0;
     
-    // 测试四条
-    const fourOfAKindHand = [
-        new Card('A', 'S'),
-        new Card('A', 'C'),
-        new Card('A', 'H'),
-        new Card('A', 'D'),
-        new Card('K', 'S')
-    ];
+    // 运行所有测试用例
+    testCases.forEach(testCase => {
+        // 随机打乱牌组顺序
+        const shuffledCards = shuffleArray(testCase.cards);
+        
+        // 评估牌型
+        const hand = HandEvaluator.evaluate(shuffledCards);
+        
+        // 验证结果
+        const isPassed = hand.rank === testCase.expected;
+        if (isPassed) {
+            passed++;
+        } else {
+            failed++;
+        }
+        
+        // 输出详细测试结果
+        console.log(`\n${testCase.name}测试:`);
+        console.log(`- 牌组: ${shuffledCards.map(c => c.toString()).join(', ')}`);
+        console.log(`- 预期数值: ${testCase.expected}`);
+        console.log(`- 实际数值: ${hand.rank}`);
+        console.log(`- 预期牌型: ${HandDescription[testCase.expected]}`);
+        console.log(`- 实际牌型: ${hand.getDescription()}`);
+        console.log(`- 结果: ${isPassed ? '✓ 通过' : '✗ 失败'}`);
+    });
     
-    // 测试葫芦
-    const fullHouseHand = [
-        new Card('A', 'S'),
-        new Card('A', 'C'),
-        new Card('A', 'H'),
-        new Card('K', 'S'),
-        new Card('K', 'C')
-    ];
+    // 输出测试摘要
+    console.log(`\n测试摘要:`);
+    console.log(`- 通过: ${passed}`);
+    console.log(`- 失败: ${failed}`);
+    console.log(`- 通过率: ${Math.round((passed / testCases.length) * 100)}%`);
     
-    // 创建基准牌型对象 - 每种牌型使用对应的卡牌数据
-    const straightFlushBaseCards = [
-        new Card('A', 'S'),
-        new Card('K', 'S'),
-        new Card('Q', 'S'),
-        new Card('J', 'S'),
-        new Card('10', 'S')
-    ];
-    const fourOfAKindBaseCards = [
-        new Card('A', 'S'),
-        new Card('A', 'C'),
-        new Card('A', 'H'),
-        new Card('A', 'D'),
-        new Card('K', 'S')
-    ];
-    const fullHouseBaseCards = [
-        new Card('A', 'S'),
-        new Card('A', 'C'),
-        new Card('A', 'H'),
-        new Card('K', 'S'),
-        new Card('K', 'C')
-    ];
-    
-    const straightFlushBase = new Hand(HandRanking.STRAIGHT_FLUSH, straightFlushBaseCards, straightFlushBaseCards);
-    const fourOfAKindBase = new Hand(HandRanking.FOUR_OF_A_KIND, fourOfAKindBaseCards, fourOfAKindBaseCards);
-    const fullHouseBase = new Hand(HandRanking.FULL_HOUSE, fullHouseBaseCards, fullHouseBaseCards);
-    
-    // 评估牌型
-    const straightFlushHandObj = HandEvaluator.evaluate(straightFlushHand);
-    const fourOfAKindHandObj = HandEvaluator.evaluate(fourOfAKindHand);
-    const fullHouseHandObj = HandEvaluator.evaluate(fullHouseHand);
-    
-    // 调试输出
-    console.log('\n评估结果:');
-    console.log('同花顺评估结果:', straightFlushHandObj.toString());
-    console.log('四条评估结果:', fourOfAKindHandObj.toString());
-    console.log('葫芦评估结果:', fullHouseHandObj.toString());
-    
-    console.log('\n基准牌型:');
-    console.log('同花顺基准:', straightFlushBase.toString());
-    console.log('四条基准:', fourOfAKindBase.toString());
-    console.log('葫芦基准:', fullHouseBase.toString());
-    
-    // 通过比较验证牌型
-    console.log(`\n- 同花顺识别: ${straightFlushHandObj.compareTo(straightFlushBase) === 0 ? "成功" : "失败"}`);
-    console.log(`- 四条识别: ${fourOfAKindHandObj.compareTo(fourOfAKindBase) === 0 ? "成功" : "失败"}`);
-    console.log(`- 葫芦识别: ${fullHouseHandObj.compareTo(fullHouseBase) === 0 ? "成功" : "失败"}`);
-    
-    // 测试牌型大小比较
-    const comparison1 = straightFlushHandObj.compareTo(fourOfAKindHandObj);
-    const comparison2 = fourOfAKindHandObj.compareTo(fullHouseHandObj);
-    console.log(`- 牌型大小比较: ${comparison1 > 0 && comparison2 > 0 ? "成功" : "失败"}`);
-    
-    console.log("牌型评估测试完成\n");
+    console.log("\n牌型评估测试完成");
 }
 
 // 运行所有测试
