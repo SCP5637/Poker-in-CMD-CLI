@@ -35,6 +35,7 @@ export class Player {
         this.currentBet = 0;          // 当前轮次的下注额
         this.totalBet = 0;            // 当前牌局的总下注额
         this.status = PlayerStatus.ACTIVE;
+        this.bestHand = null;         // 玩家当前最佳手牌组合
     }
 
     /**
@@ -90,6 +91,7 @@ export class Player {
         this.holeCards = [];
         this.currentBet = 0;
         this.totalBet = 0;
+        this.bestHand = null;
         this.status = this.chips > 0 ? PlayerStatus.ACTIVE : PlayerStatus.OUT;
     }
 
@@ -162,6 +164,28 @@ export class Player {
         const cards = this.holeCards.length > 0 
             ? this.holeCards.map(card => card.toString()).join(' ') 
             : '[]';
-        return `${this.name} (${this.status}): ${cards} - Chips: ${this.chips}`;
+        let result = `${this.name} (${this.status}): ${cards} - Chips: ${this.chips}`;
+        
+        if (this.bestHand) {
+            result += ` - Best Hand: ${this.bestHand.toString()}`;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 获取玩家的最佳手牌
+     * @returns {Hand|null} 玩家的最佳手牌组合
+     */
+    getBestHand() {
+        return this.bestHand;
+    }
+
+    /**
+     * 设置玩家的最佳手牌
+     * @param {Hand} hand - 玩家的最佳手牌组合
+     */
+    setBestHand(hand) {
+        this.bestHand = hand;
     }
 }

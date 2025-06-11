@@ -6,6 +6,7 @@
     "main": "src/index.js",
     "scripts": {
         "test": "node src/test.js",
+        "testgame": "node src/test-game.js",
         "start": "node src/index.js"
     },
     "keywords": [

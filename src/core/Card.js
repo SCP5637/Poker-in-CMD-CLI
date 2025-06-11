@@ -61,13 +61,31 @@ export class Card {
      */
     constructor(rank, suit) {
         if (!Object.values(RANKS).includes(rank)) {
-            throw new Error(`Invalid rank: ${rank}`);
+            // 允许花色符号作为rank传入
+            if (!['♠', '♥', '♦', '♣'].includes(rank)) {
+                throw new Error(`Invalid rank: ${rank}`);
+            }
         }
-        if (!Object.values(SUITS).includes(suit)) {
+
+        // 支持字母和Unicode两种花色表示
+        const suitMap = {
+            'S': '♠',
+            'H': '♥',
+            'D': '♦',
+            'C': '♣'
+        };
+        
+        let finalSuit = suit;
+        if (suitMap[suit]) {
+            finalSuit = suitMap[suit];
+        }
+
+        if (!Object.values(SUITS).includes(finalSuit)) {
             throw new Error(`Invalid suit: ${suit}`);
         }
+        
         this.rank = rank;
-        this.suit = suit;
+        this.suit = finalSuit;
     }
 
     /**

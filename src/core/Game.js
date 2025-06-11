@@ -1,6 +1,7 @@
 import { BettingRound } from './Table.js';
 import { PlayerStatus } from './Player.js';
 import { Card } from './Card.js';
+import { HandEvaluator } from '../poker/HandEvaluator.js';
 
 /**
  * 游戏状态枚举
@@ -222,6 +223,14 @@ export class Game {
             activePlayers[0].addChips(this.table.pot);
             this.table.pot = 0;
         } else {
+            // 显示所有公共牌
+            this.table.revealAllCommunityCards();
+            
+            // 计算并保存每个玩家的最佳手牌，用于UI显示
+            activePlayers.forEach(player => {
+                player.bestHand = this.getPlayerHand(player);
+            });
+            
             this.state = GameState.SHOWDOWN;
             this.determineWinners();
         }
@@ -233,16 +242,47 @@ export class Game {
      * 确定赢家并分配筹码
      */
     determineWinners() {
-        // 这里应该实现完整的德州扑克牌型比较逻辑
-        // 为了简化，我们假设已经确定了赢家
-        // 实际实现需要比较所有玩家的最佳五张牌组合
-
-        // 示例：假设第一个活跃玩家是赢家
         const activePlayers = this.table.players.filter(p => p !== null && p.isInGame());
-        if (activePlayers.length > 0) {
+        if (activePlayers.length === 0) return;
+        
+        // 如果只有一个玩家，他直接赢得所有筹码
+        if (activePlayers.length === 1) {
             activePlayers[0].addChips(this.table.pot);
             this.table.pot = 0;
+            return;
         }
+        
+        // 使用HandEvaluator确定赢家
+        const winners = HandEvaluator.determineWinners(activePlayers, this.table.communityCards);
+        
+        // 平均分配筹码给所有赢家
+        if (winners.length > 0) {
+            const winAmount = Math.floor(this.table.pot / winners.length);
+            const remainder = this.table.pot % winners.length;
+            
+            winners.forEach(winner => {
+                winner.addChips(winAmount);
+            });
+            
+            // 如果有余数，分给第一个赢家（通常是庄家位置最近的玩家）
+            if (remainder > 0) {
+                winners[0].addChips(remainder);
+            }
+            
+            this.table.pot = 0;
+        }
+    }
+    
+    /**
+     * 获取玩家的最佳手牌
+     * @param {Player} player - 玩家
+     * @returns {Hand|null} 玩家的最佳手牌，如果玩家不在游戏中则返回null
+     */
+    getPlayerHand(player) {
+        if (!player || !player.isInGame()) return null;
+        
+        const cards = [...player.holeCards, ...this.table.communityCards];
+        return HandEvaluator.evaluate(cards);
     }
 
     /**
