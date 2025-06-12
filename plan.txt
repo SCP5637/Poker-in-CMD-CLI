@@ -2,15 +2,32 @@
 
 ## 实现步骤
 
-1. 实现基础类：Card, Deck
-2. 实现核心游戏逻辑：Player, Table, Game
-3. 实现牌型评估：HandRanking, HandEvaluator, Combinations
-4. 实现下注系统：BettingRules, BettingRound, Pot
-5. 实现命令系统：CommandParser, CommandExecutor, 各种命令类
+1. 实现基础类：Card, Deck           
+————已完成功能和测试
+
+2. 实现核心游戏逻辑：Player, Table, Game            
+————已完成功能和测试
+
+3. 实现牌型评估：HandRanking, HandEvaluator, Combinations           
+————已完成功能和测试
+
+4. 实现下注系统：BettingRules, BettingRound, Pot            
+————已完成功能
+
+5. 实现命令系统：
+CommandParser, CommandExecutor, 各种命令类
+————
 6. 实现工具类：Constants, Logger, Validator
+————
+
 7. 实现界面：CLI, Display
+————
+
 8. 集成测试和调试
+————
+
 9. 优化和完善
+————
 
 ## 文件结构与功能实现
 
