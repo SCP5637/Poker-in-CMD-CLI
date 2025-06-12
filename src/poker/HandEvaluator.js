@@ -112,30 +112,30 @@ export class HandEvaluator {
      * @returns {Hand|null} 如果是同花顺则返回Hand对象，否则返回null
      */
     static checkStraightFlush(cards) {
-        console.log('检查同花顺:', cards.map(c => c.toString()).join(' '));
+        // console.log('————检查同花顺:', cards.map(c => c.toString()).join(' '));
         
         // 先检查是否为同花
         const isFlush = HandEvaluator.isFlush(cards);
-        console.log('同花检查结果:', isFlush);
+        // console.log('————同花检查结果:', isFlush);
         if (!isFlush) {
             return null;
         }
         
         // 检查是否为顺子
         const isStraight = HandEvaluator.isStraight([...cards]); // 使用副本避免修改原数组
-        console.log('顺子检查结果:', isStraight);
+        // console.log('————顺子检查结果:', isStraight);
         
         // 检查是否为皇家同花顺
         const isRoyal = HandEvaluator.checkRoyalFlush(cards);
-        console.log('皇家同花顺检查结果:', isRoyal);
+        // console.log('————皇家同花顺检查结果:', isRoyal);
         
         // 如果是顺子但不是皇家同花顺，则返回同花顺
         if (isStraight && !isRoyal) {
-            console.log('识别为同花顺');
+            // console.log('————识别为同花顺');
             return new Hand(HandRanking.STRAIGHT_FLUSH, cards, []);
         }
         
-        console.log('不是同花顺');
+        // console.log('————不是同花顺');
         return null;
     }
 

@@ -20,6 +20,12 @@ function runTests() {
     // 测试牌型评估
     testHandEvaluation();
     
+    // 测试随机手牌
+    testRandomHands();
+    
+    // 测试德州扑克手牌比较
+    testPokerHands();
+    
     console.log("\n所有测试完成!");
 }
 
@@ -245,6 +251,85 @@ function testHandEvaluation() {
     console.log(`- 通过率: ${Math.round((passed / testCases.length) * 100)}%`);
     
     console.log("\n牌型评估测试完成");
+}
+
+// 测试随机手牌
+function testRandomHands() {
+    console.log("\n测试4: 随机手牌评估");
+    
+    for (let i = 1; i <= 3; i++) {
+        console.log(`\n随机手牌测试 #${i}:`);
+        
+        // 创建新牌组并洗牌
+        const deck = new Deck();
+        deck.shuffle();
+        
+        // 抽取5张牌
+        const cards = deck.deal(5);
+        
+        // 打乱这5张牌的顺序
+        const shuffledCards = shuffleArray(cards);
+        
+        // 评估牌型
+        const hand = HandEvaluator.evaluate(shuffledCards);
+        
+        // 输出结果
+        console.log(`- 抽取的牌: ${shuffledCards.map(c => c.toString()).join(', ')}`);
+        console.log(`- 牌型: ${hand.getDescription()}`);
+    }
+    
+    console.log("\n随机手牌测试完成");
+}
+
+// 测试德州扑克手牌比较
+function testPokerHands() {
+    console.log("\n测试5: 单挑手牌比较");
+    
+    // 创建新牌组并洗牌
+    const deck = new Deck();
+    deck.shuffle();
+    
+    // 从牌组中抽取皇家同花顺作为公共牌
+    const communityCards = deck.extractSpecificCards([
+        { rank: 'A', suit: '♦' },
+        { rank: 'K', suit: '♦' },
+        { rank: 'Q', suit: '♦' },
+        { rank: 'J', suit: '♦' },
+        { rank: '9', suit: '♦' }
+    ]);
+
+    console.log(`公共牌: ${communityCards.map(c => c.toString()).join(', ')}`);
+    
+    // 抽取玩家1的两张手牌
+    const player1Cards = deck.deal(2);
+    console.log(`玩家1手牌: ${player1Cards.map(c => c.toString()).join(', ')}`);
+    
+    // 抽取玩家2的两张手牌
+    const player2Cards = deck.deal(2);
+    console.log(`玩家2手牌: ${player2Cards.map(c => c.toString()).join(', ')}`);
+    
+    // 评估玩家1的最佳牌型（从7张牌中选择最佳的5张）
+    const player1AllCards = [...communityCards, ...player1Cards];
+    const player1Hand = HandEvaluator.evaluate(player1AllCards);
+    console.log(`\n玩家1最佳牌型: ${player1Hand.getDescription()}`);
+    
+    // 评估玩家2的最佳牌型（从7张牌中选择最佳的5张）
+    const player2AllCards = [...communityCards, ...player2Cards];
+    const player2Hand = HandEvaluator.evaluate(player2AllCards);
+    console.log(`玩家2最佳牌型: ${player2Hand.getDescription()}`);
+    
+    // 比较两位玩家的牌型
+    let result;
+    if (player1Hand.rank > player2Hand.rank) {
+        result = "玩家1胜出";
+    } else if (player1Hand.rank < player2Hand.rank) {
+        result = "玩家2胜出";
+    } else {
+        result = "平局";
+    }
+    console.log(`\n比较结果: ${result}`);
+    
+    console.log("\n德州扑克手牌比较测试完成");
 }
 
 // 运行所有测试

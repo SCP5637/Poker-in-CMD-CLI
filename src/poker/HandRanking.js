@@ -28,7 +28,7 @@ export const HandDescription = {
     [HandRanking.FULL_HOUSE]: "葫芦",
     [HandRanking.FOUR_OF_A_KIND]: "四条",
     [HandRanking.STRAIGHT_FLUSH]: "同花顺",
-    [HandRanking.ROYAL_FLUSH]: "同花顺"
+    [HandRanking.ROYAL_FLUSH]: "皇家同花顺"
 };
 
 /**

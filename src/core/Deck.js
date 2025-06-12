@@ -64,6 +64,40 @@ export class Deck {
     }
 
     /**
+     * 从牌组中抽取特定的牌
+     * @param {Array<{rank: string, suit: string}>} cardsToExtract - 要抽取的牌的数组，每个元素包含rank和suit属性
+     * @returns {Array<Card>} 抽取的牌的数组
+     * @throws {Error} 如果牌组中没有请求的牌
+     */
+    extractSpecificCards(cardsToExtract) {
+        const result = [];
+        const notFound = [];
+        
+        // 遍历要抽取的牌
+        cardsToExtract.forEach(cardSpec => {
+            // 在牌组中查找匹配的牌
+            const index = this.cards.findIndex(card => 
+                card.rank === cardSpec.rank && card.suit === cardSpec.suit
+            );
+            
+            if (index !== -1) {
+                // 找到了，从牌组中移除并添加到结果中
+                result.push(this.cards.splice(index, 1)[0]);
+            } else {
+                // 没找到，记录下来
+                notFound.push(`${cardSpec.rank}${cardSpec.suit}`);
+            }
+        });
+        
+        // 如果有未找到的牌，抛出错误
+        if (notFound.length > 0) {
+            throw new Error(`以下牌在牌组中未找到: ${notFound.join(', ')}`);
+        }
+        
+        return result;
+    }
+
+    /**
      * 获取牌组中剩余的牌的数量
      * @returns {number} 剩余的牌的数量
      */
