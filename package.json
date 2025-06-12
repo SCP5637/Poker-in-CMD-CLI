@@ -10,7 +10,7 @@
         "tEvaluate": "node src/npmtest/test3-gameEvaluation.js",
         "tBet": "node src/npmtest/test4-betting.js",
         "tTotalbet": "node src/npmtest/test4_1-totalGameRun.js",
-
+        "tUtils": "node src/npmtest/test5-utils.js",
 
         "start": "node src/index.js"
     },

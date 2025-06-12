@@ -14,21 +14,34 @@
 4. 实现下注系统：BettingRules, BettingRound, Pot            
 ————已完成功能和测试
 
-5. 实现命令系统：
-CommandParser, CommandExecutor, 各种命令类
-————仅创建文件，未进行任何实现
+5. 实现工具类：
+   - Constants.js - 游戏常量定义
+   - Logger.js - 游戏日志记录
+   - Validator.js - 输入验证
+————待实现
 
-6. 实现工具类：Constants, Logger, Validator
-————仅创建文件，未进行任何实现
+6. 实现命令系统：
+   - CommandParser.js - 指令解析
+   - CommandExecutor.js - 指令执行
+   - Bet/Call/Raise/Fold/Check命令类
+————待实现
 
-7. 实现界面：CLI, Display
-————仅创建文件，未进行任何实现
+7. 实现界面系统：
+   - CLI.js - 命令行界面框架
+   - Display.js - 页面渲染引擎
+————待实现
 
-8. 集成测试和调试
-————仅创建文件，未进行任何实现
+8. 完善交互流程：
+   - 指令与游戏状态同步
+   - 动态页面更新
+   - 输入反馈机制
+————待实现
 
-9. 优化和完善
-————仅创建文件，未进行任何实现
+9. 集成测试和调试
+————待实现
+
+10. 优化和完善
+————待实现
 
 ## 文件结构与功能实现
 
