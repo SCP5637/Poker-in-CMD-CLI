@@ -1,10 +1,10 @@
-import { Card } from './core/Card.js';
-import { Deck } from './core/Deck.js';
-import { Player } from './core/Player.js';
-import { Table } from './core/Table.js';
-import { Game } from './core/Game.js';
-import { HandEvaluator } from './poker/HandEvaluator.js';
-import { Hand, HandRanking, HandDescription } from './poker/HandRanking.js';
+import { Card } from '../core/Card.js';
+import { Deck } from '../core/Deck.js';
+import { Player } from '../core/Player.js';
+import { Table } from '../core/Table.js';
+import { Game } from '../core/Game.js';
+import { HandEvaluator } from '../poker/HandEvaluator.js';
+import { Hand, HandRanking, HandDescription } from '../poker/HandRanking.js';
 
 // 测试函数
 function runTests() {

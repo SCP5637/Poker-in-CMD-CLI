@@ -1,11 +1,11 @@
-import { Card } from './core/Card.js';
-import { Deck } from './core/Deck.js';
-import { Player, PlayerStatus } from './core/Player.js';
-import { Table } from './core/Table.js';
-import { Game } from './core/Game.js';
-import { HandEvaluator } from './poker/HandEvaluator.js';
-import { BettingRound } from './betting/BettingRound.js';
-import { Pot } from './betting/Pot.js';
+import { Card } from '../core/Card.js';
+import { Deck } from '../core/Deck.js';
+import { Player, PlayerStatus } from '../core/Player.js';
+import { Table } from '../core/Table.js';
+import { Game } from '../core/Game.js';
+import { HandEvaluator } from '../poker/HandEvaluator.js';
+import { BettingRound } from '../betting/BettingRound.js';
+import { Pot } from '../betting/Pot.js';
 
 console.log('开始综合游戏测试...\n');
 

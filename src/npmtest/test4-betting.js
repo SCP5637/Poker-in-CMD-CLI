@@ -1,8 +1,8 @@
-import { BettingRules } from './betting/BettingRules.js';
-import { BettingRound } from './betting/BettingRound.js';
-import { Pot } from './betting/Pot.js';
-import { Player, PlayerStatus } from './core/Player.js';
-import { Table } from './core/Table.js';
+import { BettingRules } from '../betting/BettingRules.js';
+import { BettingRound } from '../betting/BettingRound.js';
+import { Pot } from '../betting/Pot.js';
+import { Player, PlayerStatus } from '../core/Player.js';
+import { Table } from '../core/Table.js';
 
 // 测试用例的辅助函数
 function createTestPlayer(name, chips, position) {

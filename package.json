@@ -5,11 +5,11 @@
     "type": "module",
     "main": "src/index.js",
     "scripts": {
-        "tDeck": "node src/test1-cardAndDeck.js",
-        "tGame": "node src/test2-gameState.js",
-        "tEvaluate": "node src/test3-gameEvaluation.js",
-        "tBet": "node src/test4-betting.js",
-        "tTotalbet": "node src/test4_1-totalGameRun.js",
+        "tDeck": "node src/npmtest/test1-cardAndDeck.js",
+        "tGame": "node src/npmtest/test2-gameState.js",
+        "tEvaluate": "node src/npmtest/test3-gameEvaluation.js",
+        "tBet": "node src/npmtest/test4-betting.js",
+        "tTotalbet": "node src/npmtest/test4_1-totalGameRun.js",
 
 
         "start": "node src/index.js"

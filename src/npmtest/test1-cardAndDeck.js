@@ -1,5 +1,5 @@
-import { Card, SUITS, RANKS } from './core/Card.js';
-import { Deck } from './core/Deck.js';
+import { Card, SUITS, RANKS } from '../core/Card.js';
+import { Deck } from '../core/Deck.js';
 
 /**
  * 测试Card和Deck类的基本功能

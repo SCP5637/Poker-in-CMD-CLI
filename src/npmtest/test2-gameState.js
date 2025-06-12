@@ -1,6 +1,6 @@
-import { Player, PlayerStatus } from './core/Player.js';
-import { Table, BettingRound } from './core/Table.js';
-import { Game, GameState, PlayerAction } from './core/Game.js';
+import { Player, PlayerStatus } from '../core/Player.js';
+import { Table, BettingRound } from '../core/Table.js';
+import { Game, GameState, PlayerAction } from '../core/Game.js';
 
 /**
  * 测试Player、Table和Game类的基本功能
