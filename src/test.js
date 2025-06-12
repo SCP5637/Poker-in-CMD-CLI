@@ -28,14 +28,15 @@ function testCardAndDeck() {
     firstFiveCards.forEach(card => console.log(`- ${card.toString()}`));
     
     // 发牌
-    console.log('\n发3张牌:');
-    const dealtCards = deck.deal(3);
+    console.log('\n发5张牌:');
+    const dealtCards = deck.deal(5);
     dealtCards.forEach(card => console.log(`- ${card.toString()}`));
     console.log(`牌组中还剩 ${deck.remainingCards()} 张牌`);
     
-    // 重置牌组
+    // 重置牌组并洗牌
     deck.reset();
-    console.log(`\n重置后，牌组中有 ${deck.remainingCards()} 张牌`);
+    deck.shuffle();
+    console.log(`\n重置并洗牌后，牌组中有 ${deck.remainingCards()} 张牌`);
     
     // 测试发一张牌
     const oneCard = deck.dealOne();

@@ -1,11 +1,11 @@
 // 导入所需的类
-import { Card } from './src/core/Card.js';
-import { Deck } from './src/core/Deck.js';
-import { Player } from './src/core/Player.js';
-import { Table } from './src/core/Table.js';
-import { Game } from './src/core/Game.js';
-import { HandEvaluator } from './src/poker/HandEvaluator.js';
-import { Hand, HandRanking, HandDescription } from './src/poker/HandRanking.js';
+import { Card } from './core/Card.js';
+import { Deck } from './core/Deck.js';
+import { Player } from './core/Player.js';
+import { Table } from './core/Table.js';
+import { Game } from './core/Game.js';
+import { HandEvaluator } from './poker/HandEvaluator.js';
+import { Hand, HandRanking, HandDescription } from './poker/HandRanking.js';
 
 // 测试函数
 function runTests() {
@@ -265,7 +265,7 @@ function testRandomHands() {
         deck.shuffle();
         
         // 抽取5张牌
-        const cards = deck.deal(5);
+        const cards = deck.deal(9);
         
         // 打乱这5张牌的顺序
         const shuffledCards = shuffleArray(cards);
@@ -289,14 +289,16 @@ function testPokerHands() {
     const deck = new Deck();
     deck.shuffle();
     
+    // 随机抽五张牌作为公共牌
+    const communityCards = deck.deal(5);
     // 从牌组中抽取皇家同花顺作为公共牌
-    const communityCards = deck.extractSpecificCards([
-        { rank: 'A', suit: '♦' },
-        { rank: 'K', suit: '♦' },
-        { rank: 'Q', suit: '♦' },
-        { rank: 'J', suit: '♦' },
-        { rank: '9', suit: '♦' }
-    ]);
+    // const communityCards = deck.extractSpecificCards([
+    //     { rank: 'A', suit: '♦' },
+    //     { rank: 'K', suit: '♦' },
+    //     { rank: 'Q', suit: '♦' },
+    //     { rank: 'J', suit: '♦' },
+    //     { rank: '10', suit: '♦' }
+    // ]);
 
     console.log(`公共牌: ${communityCards.map(c => c.toString()).join(', ')}`);
     
