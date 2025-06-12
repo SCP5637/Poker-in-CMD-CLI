@@ -98,7 +98,7 @@ export class Pot {
         for (let i = this.sidePots.length - 1; i >= 0; i--) {
             const sidePot = this.sidePots[i];
             const eligibleWinners = winners.filter(w => 
-                sidePot.eligiblePlayers.includes(w.player));
+                sidePot.eligiblePlayers.some(p => p.id === w.player.id));
             
             if (eligibleWinners.length > 0) {
                 this.distributeToWinners(eligibleWinners, sidePot.amount, results);
@@ -110,6 +110,15 @@ export class Pot {
 
         // 重置底池
         this.reset();
+
+        // 确保返回结果不为空
+        if (results.length === 0 && winners.length > 0) {
+            // 如果没有分配结果但有赢家，添加一个默认结果
+            results.push({
+                player: winners[0].player,
+                amount: 0
+            });
+        }
 
         return results;
     }
@@ -193,5 +202,21 @@ export class Pot {
      */
     getMainPot() {
         return this.mainPot;
+    }
+
+    /**
+     * 返回底池的字符串表示
+     * @returns {string} 底池的字符串表示
+     */
+    toString() {
+        let result = `底池: ${this.mainPot}`;
+        
+        if (this.sidePots.length > 0) {
+            result += ` (主池), 边池: ${this.sidePots.map(sp => sp.amount).join(', ')}`;
+        }
+        
+        result += ` 总计: ${this.getTotalAmount()}`;
+        
+        return result;
     }
 }

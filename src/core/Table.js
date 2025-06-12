@@ -1,5 +1,6 @@
 import { Deck } from './Deck.js';
 import { PlayerStatus } from './Player.js';
+import { Pot } from '../betting/Pot.js';
 
 /**
  * 下注轮次枚举
@@ -43,8 +44,7 @@ export class Table {
         this.players = new Array(maxPlayers).fill(null);  // 玩家数组，null表示空位
         this.deck = new Deck();
         this.communityCards = [];      // 公共牌
-        this.pot = 0;                  // 主底池
-        this.sidePots = [];            // 边池
+        this.pot = new Pot();          // 底池（包括主底池和边池）
         this.currentRound = null;      // 当前下注轮次
         this.dealerPosition = -1;      // 庄家位置
         this.activePlayerCount = 0;    // 当前在牌桌上的玩家数量
@@ -94,8 +94,7 @@ export class Table {
         this.deck.reset();
         this.deck.shuffle();
         this.communityCards = [];
-        this.pot = 0;
-        this.sidePots = [];
+        this.pot = new Pot();
         this.currentRound = BettingRound.PREFLOP;
 
         // 重置所有玩家的状态
@@ -188,8 +187,8 @@ export class Table {
      */
     collectBets() {
         this.players.forEach(player => {
-            if (player !== null) {
-                this.pot += player.getCurrentBet();
+            if (player !== null && player.getCurrentBet() > 0) {
+                this.pot.addBet(player, player.getCurrentBet());
                 player.resetCurrentBet();
             }
         });
@@ -247,7 +246,7 @@ export class Table {
     toString() {
         let result = `Dealer: Position ${this.dealerPosition}\n`;
         result += `Community Cards: ${this.communityCards.map(c => c.toString()).join(' ')}\n`;
-        result += `Pot: ${this.pot}\n`;
+        result += `${this.pot.toString()}\n`;
         result += 'Players:\n';
         this.players.forEach((player, i) => {
             if (player !== null) {

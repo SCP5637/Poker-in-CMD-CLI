@@ -5,9 +5,13 @@
     "type": "module",
     "main": "src/index.js",
     "scripts": {
-        "test": "node src/test.js",
-        "testgame": "node src/test-game.js",
-        "testcore": "node src/test-gamecore.js",
+        "tDeck": "node src/test1-cardAndDeck.js",
+        "tGame": "node src/test2-gameState.js",
+        "tEvaluate": "node src/test3-gameEvaluation.js",
+        "tBet": "node src/test4-betting.js",
+        "tTotalbet": "node src/test4_1-totalGameRun.js",
+
+
         "start": "node src/index.js"
     },
     "keywords": [

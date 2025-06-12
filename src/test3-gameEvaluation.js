@@ -1,4 +1,3 @@
-// 导入所需的类
 import { Card } from './core/Card.js';
 import { Deck } from './core/Deck.js';
 import { Player } from './core/Player.js';

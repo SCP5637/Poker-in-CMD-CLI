@@ -188,4 +188,12 @@ export class Player {
     setBestHand(hand) {
         this.bestHand = hand;
     }
+
+    /**
+     * 获取玩家当前状态
+     * @returns {PlayerStatus} 玩家当前状态
+     */
+    getStatus() {
+        return this.status;
+    }
 }
