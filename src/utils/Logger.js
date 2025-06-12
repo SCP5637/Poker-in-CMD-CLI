@@ -3,9 +3,9 @@
  * 提供分级日志功能，记录游戏运行过程
  */
 
-const { GAME_STATES, PLAYER_STATUS } = require('./Constants');
+import { GAME_STATES, PLAYER_STATUS } from './Constants.js';
 
-class Logger {
+export class Logger {
     constructor() {
         this.logLevel = 'info'; // 默认日志级别: debug, info, error
     }
@@ -44,4 +44,5 @@ class Logger {
     }
 }
 
-module.exports = new Logger();
+// 导出Logger实例
+export const logger = new Logger();

@@ -3,14 +3,14 @@
  * 验证游戏输入的有效性，包括金额、玩家名和指令
  */
 
-const {
+import {
     COMMAND_TYPES,
     ERROR_MESSAGES,
     DEFAULT_SETTINGS
-} = require('./Constants');
-const Logger = require('./Logger');
+} from './Constants.js';
+import { logger } from './Logger.js';
 
-class Validator {
+export class Validator {
     constructor(game) {
         this.game = game;
     }
@@ -18,7 +18,7 @@ class Validator {
     // 验证金额是否有效
     isValidAmount(amount) {
         if (isNaN(amount) || amount <= 0) {
-            Logger.error(ERROR_MESSAGES.INVALID_AMOUNT);
+            logger.error(ERROR_MESSAGES.INVALID_AMOUNT);
             return false;
         }
 
@@ -73,5 +73,3 @@ class Validator {
         return true;
     }
 }
-
-module.exports = Validator;
