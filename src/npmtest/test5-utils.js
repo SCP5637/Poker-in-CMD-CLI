@@ -112,7 +112,8 @@ console.log('开始工具类测试...');
 // 运行测试
 testConstants();
 testLogger();
-// testValidator(); // 暂时跳过Validator测试
+
+testValidator();
 
 console.log('\n工具类测试完成。');
 
