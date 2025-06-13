@@ -18,7 +18,7 @@
    - Constants.js - 游戏常量定义
    - Logger.js - 游戏日志记录
    - Validator.js - 输入验证
-————待实现
+————已完成功能和测试
 
 6. 实现命令系统：
    - CommandParser.js - 指令解析
