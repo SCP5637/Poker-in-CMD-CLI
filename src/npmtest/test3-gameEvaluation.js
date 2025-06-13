@@ -9,37 +9,37 @@ import { Hand, HandRanking, HandDescription } from '../poker/HandRanking.js';
 // 测试函数
 function runTests() {
     console.log("开始核心功能测试...\n");
-    
+
     // 测试基础组件初始化
     testBasicInitialization();
-    
+
     // 测试简单的游戏流程
     testBasicGameFlow();
-    
+
     // 测试牌型评估
     testHandEvaluation();
-    
+
     // 测试随机手牌
     testRandomHands();
-    
+
     // 测试德州扑克手牌比较
     testPokerHands();
-    
+
     console.log("\n所有测试完成!");
 }
 
 // 测试基础组件初始化
 function testBasicInitialization() {
     console.log("测试1: 基础组件初始化");
-    
+
     // 测试牌组
     const deck = new Deck();
     console.log(`- 创建新牌组: ${deck.cards.length === 52 ? "成功" : "失败"}`);
-    
+
     // 测试玩家
     const player = new Player("测试玩家", 1000);
     console.log(`- 创建玩家: ${player.name === "测试玩家" && player.chips === 1000 ? "成功" : "失败"}`);
-    
+
     // 测试牌桌
     const table = new Table(10, 20); // 添加小盲和大盲参数
     try {
@@ -48,30 +48,30 @@ function testBasicInitialization() {
     } catch (e) {
         console.log(`- 创建牌桌并添加玩家: 失败 (${e.message})`);
     }
-    
+
     console.log("基础组件初始化测试完成\n");
 }
 
 // 测试基本游戏流程
 function testBasicGameFlow() {
     console.log("测试2: 基本游戏流程");
-    
+
     // 创建牌桌和游戏实例
     const table = new Table(10, 20); // 小盲10，大盲20
     const game = new Game(table);
     const player1 = new Player("玩家1", 1000);
     const player2 = new Player("玩家2", 1000);
-    
+
     // 添加玩家
     game.table.addPlayer(player1, 0);
     game.table.addPlayer(player2, 1);
-    
+
     // 开始新的一轮游戏
     game.startNewRound();
-    
+
     // 验证盲注收取
     console.log(`- 盲注收取: ${player1.getCurrentBet() > 0 || player2.getCurrentBet() > 0 ? "成功" : "失败"}`);
-    
+
     console.log("基本游戏流程测试完成\n");
 }
 
@@ -88,7 +88,7 @@ function shuffleArray(array) {
 // 测试牌型评估
 function testHandEvaluation() {
     console.log("测试3: 牌型评估");
-    
+
     // 定义所有牌型测试用例
     const testCases = [
         {
@@ -216,15 +216,15 @@ function testHandEvaluation() {
 
     let passed = 0;
     let failed = 0;
-    
+
     // 运行所有测试用例
     testCases.forEach(testCase => {
         // 随机打乱牌组顺序
         const shuffledCards = shuffleArray(testCase.cards);
-        
+
         // 评估牌型
         const hand = HandEvaluator.evaluate(shuffledCards);
-        
+
         // 验证结果
         const isPassed = hand.rank === testCase.expected;
         if (isPassed) {
@@ -232,7 +232,7 @@ function testHandEvaluation() {
         } else {
             failed++;
         }
-        
+
         // 输出详细测试结果
         console.log(`\n${testCase.name}测试:`);
         console.log(`- 牌组: ${shuffledCards.map(c => c.toString()).join(', ')}`);
@@ -242,63 +242,253 @@ function testHandEvaluation() {
         console.log(`- 实际牌型: ${hand.getDescription()}`);
         console.log(`- 结果: ${isPassed ? '✓ 通过' : '✗ 失败'}`);
     });
-    
+
     // 输出测试摘要
     console.log(`\n测试摘要:`);
     console.log(`- 通过: ${passed}`);
     console.log(`- 失败: ${failed}`);
     console.log(`- 通过率: ${Math.round((passed / testCases.length) * 100)}%`);
-    
+
     console.log("\n牌型评估测试完成");
 }
 
 // 测试随机手牌
 function testRandomHands() {
     console.log("\n测试4: 随机手牌评估");
-    
+
     for (let i = 1; i <= 3; i++) {
         console.log(`\n随机手牌测试 #${i}:`);
-        
+
         // 创建新牌组并洗牌
         const deck = new Deck();
         deck.shuffle();
-        
+
         // 抽取5张牌
         const cards = deck.deal(9);
-        
+
         // 打乱这5张牌的顺序
         const shuffledCards = shuffleArray(cards);
-        
+
         // 评估牌型
         const hand = HandEvaluator.evaluate(shuffledCards);
-        
+
         // 输出结果
         console.log(`- 抽取的牌: ${shuffledCards.map(c => c.toString()).join(', ')}`);
         console.log(`- 牌型: ${hand.getDescription()}`);
     }
-    
+
     console.log("\n随机手牌测试完成");
 }
 
-// 测试德州扑克手牌比较
-function testPokerHands() {
-    console.log("\n测试5: 单挑手牌比较");
-    
+// 同牌型不同牌值比较测试
+function testSameRankDifferentValues() {
+    // 测试用例：同牌型不同牌值的比较
+    const testCases = [
+        {
+            name: "一对比较 (AA vs KK)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('Q', 'D'),
+                new Card('J', 'C'),
+                new Card('9', 'S')
+            ],
+            hand2: [
+                new Card('K', 'S'),
+                new Card('K', 'H'),
+                new Card('Q', 'S'),
+                new Card('J', 'S'),
+                new Card('9', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "两对比较 (AA-KK vs AA-QQ)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('K', 'D'),
+                new Card('K', 'C'),
+                new Card('9', 'S')
+            ],
+            hand2: [
+                new Card('A', 'C'),
+                new Card('A', 'D'),
+                new Card('Q', 'S'),
+                new Card('Q', 'H'),
+                new Card('9', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "两对比较 (AA-KK vs AA-KK 踢脚牌不同)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('K', 'D'),
+                new Card('K', 'C'),
+                new Card('Q', 'S')
+            ],
+            hand2: [
+                new Card('A', 'C'),
+                new Card('A', 'D'),
+                new Card('K', 'S'),
+                new Card('K', 'H'),
+                new Card('J', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "三条比较 (AAA vs KKK)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('A', 'D'),
+                new Card('Q', 'C'),
+                new Card('J', 'S')
+            ],
+            hand2: [
+                new Card('K', 'S'),
+                new Card('K', 'H'),
+                new Card('K', 'D'),
+                new Card('Q', 'S'),
+                new Card('J', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "顺子比较 (A-K-Q-J-10 vs K-Q-J-10-9)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('K', 'H'),
+                new Card('Q', 'D'),
+                new Card('J', 'C'),
+                new Card('10', 'S')
+            ],
+            hand2: [
+                new Card('K', 'D'),
+                new Card('Q', 'S'),
+                new Card('J', 'H'),
+                new Card('10', 'D'),
+                new Card('9', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "同花比较 (A-K-Q-J-9 vs A-K-Q-10-8)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('K', 'S'),
+                new Card('Q', 'S'),
+                new Card('J', 'S'),
+                new Card('9', 'S')
+            ],
+            hand2: [
+                new Card('A', 'H'),
+                new Card('K', 'H'),
+                new Card('Q', 'H'),
+                new Card('10', 'H'),
+                new Card('8', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "葫芦比较 (AAA-KK vs KKK-QQ)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('A', 'D'),
+                new Card('K', 'C'),
+                new Card('K', 'S')
+            ],
+            hand2: [
+                new Card('K', 'H'),
+                new Card('K', 'D'),
+                new Card('K', 'S'),
+                new Card('Q', 'C'),
+                new Card('Q', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "四条比较 (AAAA vs KKKK)",
+            hand1: [
+                new Card('A', 'S'),
+                new Card('A', 'H'),
+                new Card('A', 'D'),
+                new Card('A', 'C'),
+                new Card('Q', 'S')
+            ],
+            hand2: [
+                new Card('K', 'S'),
+                new Card('K', 'H'),
+                new Card('K', 'D'),
+                new Card('K', 'C'),
+                new Card('Q', 'H')
+            ],
+            expectedWinner: 1 
+        },
+        {
+            name: "同花顺比较 (K-Q-J-10-9 vs Q-J-10-9-8)",
+            hand1: [
+                new Card('K', 'S'),
+                new Card('Q', 'S'),
+                new Card('J', 'S'),
+                new Card('10', 'S'),
+                new Card('9', 'S')
+            ],
+            hand2: [
+                new Card('Q', 'H'),
+                new Card('J', 'H'),
+                new Card('10', 'H'),
+                new Card('9', 'H'),
+                new Card('8', 'H')
+            ],
+            expectedWinner: 1 
+        }
+    ];
+
+    // 运行所有测试用例
+    for (const testCase of testCases) {
+        console.log(`\n${testCase.name}:`);
+        
+        // 评估两手牌
+        const hand1 = HandEvaluator.evaluateCombo(testCase.hand1);
+        const hand2 = HandEvaluator.evaluateCombo(testCase.hand2);
+        
+        console.log(`玩家1: ${hand1.getDescription()} - ${testCase.hand1.map(c => c.toString()).join(' ')}`);
+        console.log(`玩家2: ${hand2.getDescription()} - ${testCase.hand2.map(c => c.toString()).join(' ')}`);
+        
+        // 比较两手牌
+        const comparison = hand1.compareTo(hand2);
+        let result;
+        if (comparison > 0) {
+            result = "玩家1胜出";
+        } else if (comparison < 0) {
+            result = "玩家2胜出";
+        } else {
+            result = "平局";
+        }
+        
+        // 验证结果
+        const expectedResult = testCase.expectedWinner === 1 ? "玩家1胜出" : 
+                              testCase.expectedWinner === 2 ? "玩家2胜出" : "平局";
+        const isPassed = result === expectedResult;
+        
+        console.log(`比较结果: ${result}`);
+        console.log(`预期结果: ${expectedResult}`);
+        console.log(`测试结果: ${isPassed ? '✓ 通过' : '✗ 失败'}`);
+    }
+}
+
+// 随机手牌比较测试
+function testRandomPokerHands() {
     // 创建新牌组并洗牌
     const deck = new Deck();
     deck.shuffle();
     
     // 随机抽五张牌作为公共牌
     const communityCards = deck.deal(5);
-    // 从牌组中抽取皇家同花顺作为公共牌
-    // const communityCards = deck.extractSpecificCards([
-    //     { rank: 'A', suit: '♦' },
-    //     { rank: 'K', suit: '♦' },
-    //     { rank: 'Q', suit: '♦' },
-    //     { rank: 'J', suit: '♦' },
-    //     { rank: '10', suit: '♦' }
-    // ]);
-
     console.log(`公共牌: ${communityCards.map(c => c.toString()).join(', ')}`);
     
     // 抽取玩家1的两张手牌
@@ -320,15 +510,41 @@ function testPokerHands() {
     console.log(`玩家2最佳牌型: ${player2Hand.getDescription()}`);
     
     // 比较两位玩家的牌型
+    const comparison = player1Hand.compareTo(player2Hand);
     let result;
-    if (player1Hand.rank > player2Hand.rank) {
+    if (comparison > 0) {
         result = "玩家1胜出";
-    } else if (player1Hand.rank < player2Hand.rank) {
+    } else if (comparison < 0) {
         result = "玩家2胜出";
     } else {
         result = "平局";
     }
     console.log(`\n比较结果: ${result}`);
+    
+    // 详细说明比较结果
+    if (player1Hand.rank === player2Hand.rank) {
+        console.log(`两位玩家都是${player1Hand.getDescription()}，但是`);
+        if (comparison > 0) {
+            console.log("玩家1的牌值更大");
+        } else if (comparison < 0) {
+            console.log("玩家2的牌值更大");
+        } else {
+            console.log("两位玩家的牌值完全相同");
+        }
+    }
+}
+
+// 测试德州扑克手牌比较
+function testPokerHands() {
+    console.log("\n测试5: 单挑手牌比较");
+    
+    // 5.1 随机手牌比较
+    console.log("\n5.1 随机手牌比较：");
+    testRandomPokerHands();
+    
+    // 5.2 同牌型不同牌值比较
+    console.log("\n5.2 同牌型不同牌值比较：");
+    testSameRankDifferentValues();
     
     console.log("\n德州扑克手牌比较测试完成");
 }
