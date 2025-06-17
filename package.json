@@ -6,11 +6,28 @@
     "main": "src/index.js",
     "scripts": {
         "tDeck": "node src/npmtest/test1-cardAndDeck.js",
+        "t1": "node src/npmtest/test1-cardAndDeck.js",
+
         "tGame": "node src/npmtest/test2-gameState.js",
+        "t2": "node src/npmtest/test2-gameState.js",
+
         "tEvaluate": "node src/npmtest/test3-gameEvaluation.js",
+        "t3": "node src/npmtest/test3-gameEvaluation.js",
+
         "tBet": "node src/npmtest/test4-betting.js",
+        "t4": "node src/npmtest/test4-betting.js",
+
         "tTotalbet": "node src/npmtest/test4_1-totalGameRun.js",
+        "t4.1": "node src/npmtest/test4_1-totalGameRun.js",
+
         "tUtils": "node src/npmtest/test5-utils.js",
+        "t5": "node src/npmtest/test5-utils.js",
+
+        "tCommand": "node src/npmtest/test6-command.js",
+        "t6": "node src/npmtest/test6-command.js",
+
+        "tRun": "node src/npmtest/test6_1-fullGameRun.js",
+        "t6.1": "node src/npmtest/test6_1-fullGameRun.js",
 
         "start": "node src/index.js"
     },
