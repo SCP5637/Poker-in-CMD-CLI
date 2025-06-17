@@ -237,16 +237,16 @@ async function runGameRound(roundNumber, game, table, commandManager) {
 async function runMultipleGameRounds() {
     try {
         // 询问用户要测试多少轮
-        rl.question('请输入要测试的游戏轮数 (1-10，直接回车默认为2轮): ', async (input) => {
+        rl.question('请输入要测试的游戏轮数 (1-1000，直接回车默认为2轮): ', async (input) => {
             let rounds = parseInt(input);
             
             // 验证输入
             if (isNaN(rounds) || rounds < 1) {
                 rounds = 2; // 默认2轮
                 console.log('使用默认值: 2轮');
-            } else if (rounds > 10) {
-                rounds = 10;
-                console.log('最多测试10轮，已设置为10轮');
+            } else if (rounds > 1000) {
+                rounds = 1000;
+                console.log('最多测试1000轮，已设置为1000轮');
             }
             
             // 创建牌桌和游戏实例
