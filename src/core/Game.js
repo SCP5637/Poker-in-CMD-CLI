@@ -15,6 +15,17 @@ export const GameState = {
 };
 
 /**
+ * 游戏状态中文描述
+ * @enum {string}
+ */
+export const GameStateDescription = {
+    [GameState.WAITING]: '等待开始',
+    [GameState.BETTING]: '下注中',
+    [GameState.SHOWDOWN]: '摊牌',
+    [GameState.FINISHED]: '已结束'
+};
+
+/**
  * 玩家行动枚举
  * @enum {string}
  */
@@ -42,6 +53,8 @@ export class Game {
         this.currentBet = 0;           // 当前轮次的最高下注额
         this.minRaise = 0;             // 最小加注额
         this.lastRaisePosition = -1;   // 最后一次加注的玩家位置
+        this.currentRound = 0;         // 当前下注轮次（0=翻牌前，1=翻牌，2=转牌，3=河牌）
+        this.lastPotAmount = 0;        // 记录最后一次底池金额
     }
 
     /**
@@ -52,6 +65,8 @@ export class Game {
         this.state = GameState.BETTING;
         this.currentBet = 0;
         this.minRaise = this.table.bigBlind;
+        this.currentRound = 0;
+        this.lastPotAmount = 0;
 
         // 收取盲注
         this.collectBlinds();
@@ -92,15 +107,15 @@ export class Game {
      */
     handlePlayerAction(position, action, amount = 0) {
         if (this.state !== GameState.BETTING) {
-            throw new Error('Cannot act in current game state');
+            throw new Error('当前游戏状态下无法行动');
         }
         if (position !== this.currentPlayerPosition) {
-            throw new Error('Not your turn to act');
+            throw new Error('不是你的行动回合');
         }
 
         const player = this.table.players[position];
         if (!player || !player.canAct()) {
-            throw new Error('Player cannot act');
+            throw new Error('玩家无法行动');
         }
 
         switch (action) {
@@ -110,23 +125,32 @@ export class Game {
 
             case PlayerAction.CHECK:
                 if (this.currentBet > player.getCurrentBet()) {
-                    throw new Error('Cannot check when there is a bet');
+                    throw new Error('当前有下注时无法看牌');
                 }
                 break;
 
             case PlayerAction.CALL:
                 const callAmount = this.currentBet - player.getCurrentBet();
                 if (callAmount > 0) {
-                    player.bet(Math.min(callAmount, player.chips));
+                    if (callAmount > player.chips) {
+                        // 如果玩家筹码不够跟注，就全下
+                        player.bet(player.chips);
+                        player.setStatus(PlayerStatus.ALL_IN);
+                    } else {
+                        player.bet(callAmount);
+                    }
                 }
                 break;
 
             case PlayerAction.BET:
                 if (this.currentBet > 0) {
-                    throw new Error('Cannot bet when there is already a bet');
+                    throw new Error('已经有下注时无法下注');
                 }
                 if (amount < this.table.bigBlind) {
-                    throw new Error(`Bet must be at least the big blind (${this.table.bigBlind})`);
+                    throw new Error(`下注金额必须至少为大盲注 (${this.table.bigBlind})`);
+                }
+                if (amount > player.chips) {
+                    throw new Error('筹码不足');
                 }
                 player.bet(amount);
                 this.currentBet = amount;
@@ -136,20 +160,24 @@ export class Game {
 
             case PlayerAction.RAISE:
                 if (this.currentBet === 0) {
-                    throw new Error('Cannot raise when there is no bet');
+                    throw new Error('没有下注时无法加注');
                 }
                 const raiseTotal = this.currentBet + this.minRaise;
                 if (amount < raiseTotal) {
-                    throw new Error(`Raise must be at least ${raiseTotal}`);
+                    throw new Error(`加注金额必须至少为 ${raiseTotal}`);
                 }
-                player.bet(amount - player.getCurrentBet());
+                const raiseAmount = amount - player.getCurrentBet();
+                if (raiseAmount > player.chips) {
+                    throw new Error('筹码不足');
+                }
+                player.bet(raiseAmount);
                 this.currentBet = amount;
                 this.minRaise = amount - this.currentBet;
                 this.lastRaisePosition = position;
                 break;
 
             default:
-                throw new Error('Invalid action');
+                throw new Error('无效的行动');
         }
 
         this.moveToNextPlayer();
@@ -189,6 +217,9 @@ export class Game {
      * 结束当前下注轮次
      */
     finishBettingRound() {
+        // 在收集下注到底池之前记录当前底池金额
+        this.lastPotAmount = this.table.pot.getTotalAmount();
+
         // 收集所有下注到底池
         this.table.collectBets();
         this.currentBet = 0;
@@ -201,15 +232,19 @@ export class Game {
         }
 
         // 进入下一个下注轮次
-        const hasNextRound = this.table.nextBettingRound();
-        if (!hasNextRound) {
-            this.state = GameState.SHOWDOWN;
-            this.determineWinners();
-        } else {
+        this.currentRound++;
+        const hasNextRound = this.currentRound < 4; // 4轮下注：翻牌前、翻牌、转牌、河牌
+        
+        if (hasNextRound) {
+            // 发公共牌
+            this.table.nextBettingRound();
             // 设置下一轮第一个行动的玩家（翻牌后是庄家后面的第一个玩家）
             this.currentPlayerPosition = this.table.getNextActivePlayer(this.table.dealerPosition);
             this.lastRaisePosition = -1;
             this.minRaise = this.table.bigBlind;
+        } else {
+            this.state = GameState.SHOWDOWN;
+            this.determineWinners();
         }
     }
 
@@ -220,8 +255,10 @@ export class Game {
         // 如果只剩一个玩家，他赢得所有筹码
         const activePlayers = this.table.players.filter(p => p !== null && p.isInGame());
         if (activePlayers.length === 1) {
-            activePlayers[0].addChips(this.table.pot);
-            this.table.pot = 0;
+            const potAmount = this.table.pot.getTotalAmount();
+            activePlayers[0].addChips(potAmount);
+            this.lastPotAmount = potAmount; // 记录最后的底池金额
+            this.table.pot.reset();
         } else {
             // 显示所有公共牌
             this.table.revealAllCommunityCards();
@@ -247,8 +284,10 @@ export class Game {
         
         // 如果只有一个玩家，他直接赢得所有筹码
         if (activePlayers.length === 1) {
-            activePlayers[0].addChips(this.table.pot);
-            this.table.pot = 0;
+            const potAmount = this.table.pot.getTotalAmount();
+            this.lastPotAmount = potAmount; // 记录最后的底池金额
+            activePlayers[0].addChips(potAmount);
+            this.table.pot.reset();
             return;
         }
         
@@ -257,8 +296,10 @@ export class Game {
         
         // 平均分配筹码给所有赢家
         if (winners.length > 0) {
-            const winAmount = Math.floor(this.table.pot / winners.length);
-            const remainder = this.table.pot % winners.length;
+            const potAmount = this.table.pot.getTotalAmount();
+            this.lastPotAmount = potAmount; // 记录最后的底池金额
+            const winAmount = Math.floor(potAmount / winners.length);
+            const remainder = potAmount % winners.length;
             
             winners.forEach(winner => {
                 winner.addChips(winAmount);
@@ -269,7 +310,7 @@ export class Game {
                 winners[0].addChips(remainder);
             }
             
-            this.table.pot = 0;
+            this.table.pot.reset();
         }
     }
     
@@ -299,10 +340,18 @@ export class Game {
      * @returns {string} 游戏状态的字符串表示
      */
     toString() {
-        let result = `Game State: ${this.state}\n`;
-        result += `Current Bet: ${this.currentBet}\n`;
-        result += `Current Player: ${this.currentPlayerPosition}\n`;
+        let result = `游戏状态: ${GameStateDescription[this.state]}\n`;
+        result += `当前下注: ${this.currentBet}\n`;
+        result += `当前玩家: ${this.currentPlayerPosition}\n`;
         result += this.table.toString();
         return result;
+    }
+
+    /**
+     * 获取最后记录的底池金额
+     * @returns {number} 最后记录的底池金额
+     */
+    getLastPotAmount() {
+        return this.lastPotAmount;
     }
 }
