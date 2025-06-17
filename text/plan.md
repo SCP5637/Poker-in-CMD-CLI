@@ -24,7 +24,7 @@
    - CommandParser.js - 指令解析
    - CommandExecutor.js - 指令执行
    - Bet/Call/Raise/Fold/Check命令类
-————待实现
+————以实现，待测试验证
 
 7. 实现界面系统：
    - CLI.js - 命令行界面框架

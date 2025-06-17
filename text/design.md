@@ -26,11 +26,15 @@ src/
 ├── commands/              # 命令系统
 │   ├── CommandParser.js  # 命令解析器
 │   ├── CommandExecutor.js # 命令执行器
-│   ├── BetCommand.js
+│   ├── CommandFactory.js  # 命令工厂
 │   ├── CallCommand.js
 │   ├── RaiseCommand.js
 │   ├── FoldCommand.js
 │   └── CheckCommand.js
+│
+├── npmtest/              # 测试文件目录
+│   ├── test1-.....js  
+│   └── 测试文件...        #测试文件统一目录
 │
 ├── utils/                # 工具类
 │   ├── Logger.js        # 日志工具
