@@ -52,7 +52,8 @@ function getStatusInChinese(status) {
 
 // 辅助函数：打印当前游戏状态
 function printGameState() {
-    console.log('\n当前游戏状态:');
+    console.log('\n\n————————————————————————————————————————————————————————————————')
+    console.log('当前游戏状态:');
     
     // 获取底池金额 - 安全处理
     let potAmount = 0;
@@ -88,7 +89,8 @@ function printGameState() {
     if (availableCommands.length > 0) {
         console.log('\n当前玩家可用命令:');
         availableCommands.forEach(cmd => {
-            console.log(`- ${cmd.type}`);
+            const description = commandManager.getCommandDescription(cmd.type);
+            console.log(`- ${cmd.type}-${description}`);
         });
     }
 }
@@ -179,7 +181,8 @@ try {
     console.log('\n命令历史:');
     const commandHistory = commandManager.getCommandHistory();
     commandHistory.forEach((entry, index) => {
-        console.log(`${index + 1}. ${entry.command.type} 于 ${new Date(entry.timestamp).toLocaleTimeString()}`);
+        const description = commandManager.getCommandDescription(entry.command.type);
+        console.log(`${index + 1}. ${entry.command.type}-${description} 于 ${new Date(entry.timestamp).toLocaleTimeString()}`);
     });
 
     console.log('\n测试成功完成！');

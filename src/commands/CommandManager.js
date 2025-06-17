@@ -26,6 +26,25 @@ export class CommandManager {
     }
 
     /**
+     * 获取命令的中文描述
+     * @param {string} commandType - 命令类型
+     * @returns {string} 命令的中文描述
+     */
+    getCommandDescription(commandType) {
+        const descriptions = {
+            [CommandType.CHECK]: '看牌',
+            [CommandType.CALL]: '跟注',
+            [CommandType.BET]: '下注',
+            [CommandType.RAISE]: '加注',
+            [CommandType.ALL_IN]: '全下',
+            [CommandType.FOLD]: '弃牌',
+            [CommandType.EXIT]: '退出',
+            [CommandType.HELP]: '帮助'
+        };
+        return descriptions[commandType] || commandType;
+    }
+
+    /**
      * 执行命令
      * @param {string} commandInput - 命令输入字符串
      * @param {Object} args - 命令参数
