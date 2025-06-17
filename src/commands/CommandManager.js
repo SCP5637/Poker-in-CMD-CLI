@@ -61,6 +61,10 @@ export class CommandManager {
                 throw new Error(`Command ${commandInput} is not available in current game state`);
             }
             
+            // 获取当前玩家
+            const currentPlayer = this.game.getCurrentPlayer();
+            const playerName = currentPlayer ? currentPlayer.name : '系统';
+            
             // 创建具体的命令实例
             const command = CommandFactory.createCommand(commandObj);
             
@@ -70,11 +74,12 @@ export class CommandManager {
             // 记录命令历史
             this.commandHistory.push({
                 command: commandObj,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                playerName: playerName
             });
             
             // 调用命令执行后的回调
-            this.options.onCommandExecuted(commandObj, result);
+            this.options.onCommandExecuted(commandObj, result, playerName);
             
             return result;
         } catch (error) {

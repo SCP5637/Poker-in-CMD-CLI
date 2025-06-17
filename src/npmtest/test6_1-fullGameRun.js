@@ -11,10 +11,30 @@ console.log('开始测试6_1：使用命令系统进行完整游戏测试...');
 const table = new Table(10, 20);  // 小盲10，大盲20
 const game = new Game(table);
 
+// 辅助函数：格式化命令显示，包括参数
+function formatCommandDisplay(command, description) {
+    let display = `${command.type}-${description}`;
+    
+    // 添加参数信息
+    if (command.args) {
+        if (command.type === CommandType.BET && command.args.amount) {
+            display += ` ${command.args.amount}筹码`;
+        } else if (command.type === CommandType.RAISE && command.args.amount) {
+            display += ` 至${command.args.amount}筹码`;
+        } else if (command.type === CommandType.ALL_IN && command.args.amount) {
+            display += ` ${command.args.amount}筹码`;
+        }
+    }
+    
+    return display;
+}
+
 // 创建命令管理器
 const commandManager = new CommandManager(game, {
-    onCommandExecuted: (command, result) => {
-        console.log(`命令执行: ${command.type}`, result ? '✓' : '✗');
+    onCommandExecuted: (command, result, playerName) => {
+        const description = commandManager.getCommandDescription(command.type);
+        const commandDisplay = formatCommandDisplay(command, description);
+        console.log(`命令执行: ${playerName}: ${commandDisplay}`, result ? '✓' : '✗');
     },
     onError: (error) => {
         console.error('命令错误:', error.message);
@@ -97,14 +117,14 @@ function printGameState() {
 
 try {
     // 开始游戏
-    console.log('\n初始化游戏...');
+    console.log('\n\n初始化游戏...');
     
     // 使用game.startNewRound()方法开始游戏，它会自动设置游戏状态和当前玩家
     game.startNewRound();
     
     printGameState();
 
-    console.log('\n开始翻牌前轮...');
+    console.log('\n\n开始翻牌前轮...');
     // 翻牌前下注轮
     commandManager.executeCommand('012'); // CALL
     commandManager.executeCommand('013', { amount: 60 }); // RAISE
@@ -113,7 +133,7 @@ try {
 
     printGameState();
 
-    console.log('\n发放翻牌...');
+    console.log('\n\n发放翻牌...');
     // 进入翻牌圈，自动发3张公共牌
     game.finishBettingRound();
     printGameState();
@@ -127,7 +147,7 @@ try {
 
     printGameState();
 
-    console.log('\n发放转牌...');
+    console.log('\n\n发放转牌...');
     // 进入转牌圈，自动发1张转牌
     game.finishBettingRound();
     printGameState();
@@ -141,7 +161,7 @@ try {
 
         printGameState();
 
-        console.log('\n发放河牌...');
+        console.log('\n\n发放河牌...');
         // 进入河牌圈，自动发1张河牌
         game.finishBettingRound();
         printGameState();
@@ -153,7 +173,7 @@ try {
         printGameState();
 
         // 摊牌阶段
-        console.log('\n摊牌!');
+        console.log('\n\n摊牌!');
         game.finishBettingRound(); // 结束最后一轮下注，进入摊牌阶段
     } else {
         console.log('\n游戏已进入摊牌阶段，跳过剩余下注轮。');
@@ -166,7 +186,7 @@ try {
     // 获取最后的底池金额
     const finalPotAmount = game.getLastPotAmount();
     
-    console.log('\n游戏结果:');
+    console.log('\n\n游戏结果:');
     winners.forEach(winner => {
         const hand = winner.getHoleCards();
         const communityCards = table.communityCards;
@@ -178,11 +198,12 @@ try {
     });
 
     // 打印命令历史
-    console.log('\n命令历史:');
+    console.log('\n\n命令历史:');
     const commandHistory = commandManager.getCommandHistory();
     commandHistory.forEach((entry, index) => {
         const description = commandManager.getCommandDescription(entry.command.type);
-        console.log(`${index + 1}. ${entry.command.type}-${description} 于 ${new Date(entry.timestamp).toLocaleTimeString()}`);
+        const commandDisplay = formatCommandDisplay(entry.command, description);
+        console.log(`${index + 1}. ${entry.playerName}: ${commandDisplay} 于 ${new Date(entry.timestamp).toLocaleTimeString()}`);
     });
 
     console.log('\n测试成功完成！');
