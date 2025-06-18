@@ -40,12 +40,30 @@
 9. 集成测试和调试
 ————待实现
 
-10. 优化和完善
+00.  制作一套AI行动逻辑和AI的决策方式生成训练器
 ————待实现
 
 ## 文件结构与功能实现
 
 ### 核心模块 (src/core/)
+
+#### GameEngine.js
+- 实现游戏主循环，协调游戏流程
+- 属性：
+  - 游戏实例(game)
+  - 界面管理器(displayManager)
+  - 命令管理器(commandManager)
+  - 游戏状态(state)
+- 方法：
+  - `start()`: 启动游戏主循环
+  - `processInput(input)`: 处理用户输入
+  - `update()`: 更新游戏状态
+  - `render()`: 渲染游戏界面
+  - `handleGameOver()`: 处理游戏结束逻辑
+  - `pause()`: 暂停游戏
+  - `resume()`: 恢复游戏
+  - `saveState()`: 保存游戏状态
+  - `loadState()`: 加载游戏状态
 
 #### Card.js
 - 实现扑克牌类，表示单张扑克牌
@@ -256,22 +274,46 @@
 
 ### 界面相关 (src/interface/)
 
-#### CLI.js
-- 实现命令行接口
-- 方法：
-  - `start()`: 启动命令行界面
-  - `readInput()`: 读取用户输入
-  - `displayPrompt()`: 显示提示符
-  - `displayGameState(game)`: 显示游戏状态
-  - `displayPlayerInfo(player)`: 显示玩家信息
-  - `displayCommunityCards(cards)`: 显示公共牌
-  - `displayWinners(winners)`: 显示赢家信息
-
 #### Display.js
-- 实现显示管理器，负责格式化和显示游戏信息
+- 实现游戏页面构建和渲染，按照page&interaction.txt规范
+- 属性：
+  - 游戏实例(game)
+  - 当前游戏状态(state)
+  - 页面区域缓存(regions)
 - 方法：
-  - `formatCard(card)`: 格式化扑克牌显示
-  - `formatHand(hand)`: 格式化手牌显示
-  - `formatChips(amount)`: 格式化筹码显示
-  - `formatTable(table)`: 格式化牌桌显示
-  - `formatGameState(game)`: 格式化游戏状态显示
+  - `renderDataRegion()`: 渲染数据区域
+    - 显示游戏进程、轮次、玩家筹码和下注行动
+    - 格式遵循page&interaction.txt中的示例
+  - `renderPublicRegion()`: 渲染公共展示区域
+    - 显示公共牌和当前注额信息
+    - 处理未摊牌(显示?)和已摊牌状态
+  - `renderPrivateRegion()`: 渲染私人展示区域
+    - 显示玩家手牌和筹码信息
+    - 仅对当前玩家可见
+  - `renderSettlementRegion()`: 渲染结算页面
+    - 摊牌后显示结算详情
+    - 处理主池和边池显示
+  - `renderCommandRegion()`: 渲染可执行指令区域
+    - 根据游戏状态显示可用命令
+    - 使用三位数字编码格式
+  - `renderAll()`: 渲染完整页面
+    - 按顺序调用各区域渲染方法
+    - 添加适当的分隔线
+
+#### CLI.js
+- 实现命令行接口，遵循page&interaction.txt流程
+- 方法：
+  - `start()`: 启动主页面
+    - 显示001-004命令选项
+    - 处理000退出命令
+  - `showGameSetup()`: 显示游戏设置页面
+    - 实现091-094设置命令
+    - 处理090继续命令
+  - `startGame()`: 启动游戏主循环
+    - 初始化游戏实例
+    - 进入游戏运行页面
+  - `processInput()`: 处理用户输入
+    - 验证三位数字命令格式
+    - 路由到相应处理器
+  - `displayError()`: 显示输入错误
+    - 当输入无效命令时提示

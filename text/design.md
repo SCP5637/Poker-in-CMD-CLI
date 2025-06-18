@@ -8,6 +8,7 @@
 src/
 ├── core/                   # 核心游戏逻辑
 │   ├── Game.js            # 游戏主控制器
+│   ├── GameEngine.js        # 游戏主循环
 │   ├── Player.js          # 玩家类
 │   ├── Deck.js            # 扑克牌组类
 │   ├── Card.js            # 扑克牌类
