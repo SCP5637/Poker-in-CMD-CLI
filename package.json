@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "A command-line Texas Hold'em poker game",
     "type": "module",
-    "main": "src/index.js",
+    "main": "index.js",
     "scripts": {
         "tDeck": "node src/npmtest/test1-cardAndDeck.js",
         "t1": "node src/npmtest/test1-cardAndDeck.js",
@@ -29,7 +29,7 @@
         "tRun": "node src/npmtest/test6_1-fullGameRun.js",
         "t6.1": "node src/npmtest/test6_1-fullGameRun.js",
 
-        "start": "node src/index.js"
+        "game": "node index.js"
     },
     "keywords": [
         "poker",
