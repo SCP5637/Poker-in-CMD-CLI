@@ -41,6 +41,11 @@
 ————待实现
 
 00.  制作一套AI行动逻辑和AI的决策方式生成训练器
+   - AIgenerator.js - 
+   - AIrank.js - 
+   - AItrainer.js -
+   - IntelligenceList.json -
+   - MasterAI.json -
 ————待实现
 
 ## 文件结构与功能实现
@@ -317,3 +322,125 @@
     - 路由到相应处理器
   - `displayError()`: 显示输入错误
     - 当输入无效命令时提示
+
+### AI系统 (src/ai/)
+
+#### AIgenerator.js
+- 实现AI生成器，用于创建具有不同行为特征的AI玩家
+- 属性：
+  - `behaviorParams`: 包含7个行为参数的默认范围配置
+- 方法：
+  - `generateAI()`: 随机生成一个新的AI配置
+    - 生成7个行为参数(evaluateValue, bluffValue等)，每个参数值为0-20的整数
+    - 生成唯一的AI ID
+    - 初始dotRate设为0
+  - `saveToIntelligenceList(aiConfig)`: 将AI配置保存到IntelligenceList.json
+  - `loadIntelligenceList(index)`: 从IntelligenceList.json加载指定AI配置
+
+#### AIrank.js 
+- 实现AI排名系统，评估和筛选表现最佳的AI
+- 方法：
+  - `calculateRankings()`: 根据dotRate对所有AI进行排序
+  - `getTopPerformers(count)`: 获取dotRate最高的count个AI
+  - `getBottomPerformers(count)`: 获取dotRate最低的count个AI
+  - `updateMasterAI()`: 将表现最好和最差的AI保存到MasterAI.json
+
+#### AItrainer.js
+- 实现AI训练系统，通过模拟对弈训练AI
+- 属性：
+  - `gameInstance`: 用于训练的游戏实例
+- 方法：
+  - `setupTrainingGame()`: 设置训练游戏
+    - 从IntelligenceList.json随机选择2个现有AI
+    - 通过AIgenerator生成2个新AI
+    - 初始化游戏环境
+  - `runTrainingSession()`: 运行训练会话
+    - 执行完整的扑克游戏流程
+    - 监控AI行为决策
+    - 记录每个AI的筹码变化
+  - `calculateDotRate(ai, initialChips, finalChips)`: 计算单个AI的dotRate
+    - 公式：(finalChips + initialChips) / initialChips
+  - `updateAIStats()`: 更新AI统计数据
+    - 将新的dotRate与历史数据平均
+    - 更新IntelligenceList.json
+
+#### IntelligenceList.json
+- 存储所有AI配置的数据文件
+- 结构示例：
+```json
+[
+  {
+    "id": "AI_001",
+    "params": {
+      "evaluateValue": 12,
+      "bluffValue": 7,
+      "economyValue": 15,
+      "fierceValue": 9,
+      "deadlineValue": 5,
+      "escapeValue": 11,
+      "randomValue": 3
+    },
+    "dotRateCollection": [1.25, 1.35, 1.2, 1.1, 1.4, 1.5, 3.25, 2, 1.1],
+    "dotRate": 1.25,
+    "gamesPlayed": 8
+  },
+  ...
+]
+```
+
+#### MasterAI.json
+- 存储表现最佳和最差的AI配置
+- 用于后续分析和AI进化
+- 结构示例：
+```json
+{
+  "top": [
+    // dotRate最高的10个AI配置
+  ],
+  "bottom": [
+    // dotRate最低的10个AI配置
+  ]
+}
+```
+
+#### AI行为参数说明
+
+AI的决策由以下7个参数控制(每个参数取值0-20)：
+
+1. `evaluateValue` - 牌面评估倾向
+   - 数值越高，AI越倾向于根据手牌和公共牌强度决策
+
+2. `bluffValue` - 诈唬倾向  
+   - 数值越高，AI越倾向于通过大注虚张声势
+
+3. `economyValue` - 经济计算倾向
+   - 数值越高，AI越倾向于基于赔率计算决策
+
+4. `fierceValue` - 激进倾向
+   - 数值越高，AI下注和加注的金额越大
+
+5. `deadlineValue` - 全押倾向
+   - 数值越低，AI在越少筹码时越容易全押
+
+6. `escapeValue` - 退出倾向
+   - 数值越高，AI在亏损或盈利达到阈值时越容易退出
+
+7. `randomValue` - 随机行为倾向
+   - 数值越高，AI决策越随机(全押除外)
+
+#### 训练流程
+
+1. 初始化阶段：
+   - 生成初始AI群体(通过AIgenerator)
+   - 保存到IntelligenceList.json
+
+2. 训练循环：
+   - 选择4个AI(2现有+2新生成)
+   - 进行模拟对弈(AItrainer)
+   - 计算并更新dotRate
+   - 定期更新MasterAI.json(AIrank)
+
+3. 进化阶段：
+   - 基于表现最佳的AI生成新变体
+   - 淘汰表现最差的AI
+   - 持续优化AI群体
