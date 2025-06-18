@@ -56,6 +56,17 @@ export class CommandManager {
             // 解析命令
             const commandObj = CommandParser.parse(commandInput, args);
             
+            // 如果需要输入下注金额，返回提示信息
+            if (commandObj.args.expectingBetAmount) {
+                // 提示用户输入下注金额
+                this.options.onCommandExecuted(
+                    commandObj, 
+                    { message: `请输入${commandObj.type === CommandType.BET ? '下注' : '加注'}金额:` }, 
+                    '系统'
+                );
+                return { expectingBetAmount: true, pendingCommand: commandObj.type };
+            }
+            
             // 检查命令在当前游戏状态下是否可用
             if (!CommandParser.isCommandAvailable(commandObj, this.game)) {
                 throw new Error(`Command ${commandInput} is not available in current game state`);

@@ -39,53 +39,70 @@ export class CommandParser {
      * @throws {Error} 如果命令无效
      */
     static parse(input, args = {}) {
+        // 创建命令对象
+        const command = {
+            type: null,
+            args: { ...args }
+        };
+
+        // 检查是否是下注金额输入
+        if (args.expectingBetAmount) {
+            const amount = parseInt(input);
+            if (isNaN(amount) || amount <= 0) {
+                throw new Error('请输入有效的下注金额（必须大于0）');
+            }
+            command.type = args.pendingCommand;
+            command.args = {
+                ...args,
+                amount: amount,
+                expectingBetAmount: false,
+                pendingCommand: null
+            };
+            return command;
+        }
+
         // 验证输入格式
         if (!/^\d{3}$/.test(input)) {
-            throw new Error('Invalid command format. Command must be a three-digit number.');
+            throw new Error('命令格式无效。命令必须是三位数字。');
         }
 
         // 检查命令是否存在
         const commandType = Object.values(CommandType).find(type => type === input);
         if (!commandType) {
-            throw new Error(`Unknown command: ${input}`);
+            throw new Error(`未知命令: ${input}`);
         }
 
-        // 创建命令对象
-        const command = {
-            type: commandType,
-            args: { ...args }
-        };
+        command.type = commandType;
 
-        // 根据命令类型验证和处理参数
+        // 对于需要金额的命令，设置等待输入标志
         switch (commandType) {
             case CommandType.BET:
             case CommandType.RAISE:
-                if (typeof args.amount !== 'number' || args.amount <= 0) {
-                    throw new Error('Invalid amount for bet/raise command');
-                }
+                command.args.expectingBetAmount = true;
+                command.args.pendingCommand = commandType;
                 break;
 
             case CommandType.SET_PLAYER_COUNT:
                 if (typeof args.count !== 'number' || args.count < 2 || args.count > 8) {
-                    throw new Error('Invalid player count (must be between 2 and 8)');
+                    throw new Error('玩家数量无效（必须在2到8之间）');
                 }
                 break;
 
             case CommandType.SET_INITIAL_CHIPS:
                 if (typeof args.chips !== 'number' || args.chips < 300 || args.chips > 10000) {
-                    throw new Error('Invalid initial chips amount (must be between 300 and 10000)');
+                    throw new Error('初始筹码数量无效（必须在300到10000之间）');
                 }
                 break;
 
             case CommandType.SET_BIG_BLIND:
                 if (typeof args.amount !== 'number' || args.amount <= 0 || args.amount > 100 || args.amount % 2 !== 0) {
-                    throw new Error('Invalid big blind amount (must be an even number between 2 and 100)');
+                    throw new Error('大盲注金额无效（必须是2到100之间的偶数）');
                 }
                 break;
 
             case CommandType.SET_PLAYER_NAMES:
                 if (!Array.isArray(args.names)) {
-                    throw new Error('Player names must be provided as an array');
+                    throw new Error('玩家名称必须以数组形式提供');
                 }
                 break;
         }

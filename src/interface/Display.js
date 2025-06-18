@@ -199,8 +199,8 @@ export class Display {
      * @returns {string} - 渲染后的结算页面文本
      */
     renderSettlementRegion(game) {
-        if (game.state !== GameState.SHOWDOWN) {
-            return `\n${this.divider}\n[等待进入结算...]\n${this.divider}\n`;
+        if (game.state !== GameState.SHOWDOWN && game.state !== GameState.FINISHED) {
+            return ''; // 如果不是结算或结束状态，不显示任何内容
         }
 
         const winners = game.getWinners();

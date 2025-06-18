@@ -208,9 +208,28 @@ export class Game {
             return true;
         }
 
-        // 如果所有玩家都已经行动且下注相等或者ALL-IN，轮次结束
+        // 获取下一个可以行动的玩家
         const nextPlayer = this.table.getNextActivePlayer(this.currentPlayerPosition);
-        return nextPlayer === -1 || nextPlayer === this.lastRaisePosition;
+        
+        // 如果没有下一个玩家，轮次结束
+        if (nextPlayer === -1) {
+            return true;
+        }
+        
+        // 如果下一个玩家是最后一个加注的玩家，轮次结束
+        if (nextPlayer === this.lastRaisePosition) {
+            return true;
+        }
+        
+        // 如果当前没有下注（所有人都check）且所有玩家都已经行动过一次，轮次结束
+        if (this.currentBet === 0 && this.lastRaisePosition === -1) {
+            // 检查是否所有玩家都已经行动过
+            // 如果我们回到了第一个行动的玩家，说明所有人都行动过了
+            const firstActivePlayer = this.table.getNextActivePlayer(this.table.dealerPosition);
+            return nextPlayer === firstActivePlayer;
+        }
+        
+        return false;
     }
 
     /**
@@ -353,5 +372,45 @@ export class Game {
      */
     getLastPotAmount() {
         return this.lastPotAmount;
+    }
+    
+    /**
+     * 获取当前游戏的赢家
+     * @returns {Array} 赢家信息数组，每个元素包含player（玩家对象）、potIndex（赢得的底池索引）和amount（赢得的金额）
+     */
+    getWinners() {
+        const activePlayers = this.table.players.filter(p => p !== null && p.isInGame());
+        if (activePlayers.length === 0) return [];
+        
+        // 如果只有一个玩家，他直接赢得所有筹码
+        if (activePlayers.length === 1) {
+            return [{
+                player: activePlayers[0],
+                potIndex: 0,
+                amount: this.table.pot.getTotalAmount()
+            }];
+        }
+        
+        // 使用HandEvaluator确定赢家
+        const winners = HandEvaluator.determineWinners(activePlayers, this.table.communityCards);
+        
+        // 构建赢家信息
+        const potAmount = this.table.pot.getTotalAmount();
+        const winAmount = Math.floor(potAmount / winners.length);
+        const remainder = potAmount % winners.length;
+        
+        return winners.map((player, index) => ({
+            player,
+            potIndex: 0, // 主池
+            amount: index === 0 ? winAmount + remainder : winAmount
+        }));
+    }
+    
+    /**
+     * 检查游戏是否结束
+     * @returns {boolean} 如果游戏结束返回true
+     */
+    isGameOver() {
+        return this.state === GameState.FINISHED;
     }
 }
