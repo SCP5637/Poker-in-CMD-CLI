@@ -271,7 +271,7 @@ export class CLI {
 }
 
 // 如果直接运行此文件，则启动CLI
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     const cli = new CLI();
     cli.start().catch(error => {
         console.error('程序出错:', error);

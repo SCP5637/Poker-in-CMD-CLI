@@ -45,8 +45,8 @@ export class Display {
     renderDataRegion(game) {
         const table = game.table;
         const players = table.players;
-        const currentRound = game.getCurrentRound();
-        const totalRounds = game.getTotalRounds();
+        const currentRound = game.currentRound;
+        const totalRounds = 4; // 固定为4轮：翻牌前、翻牌、转牌、河牌
         const gameState = GameStateDescription[game.state];
 
         let output = `${this.divider}\n`;
@@ -111,8 +111,8 @@ export class Display {
     renderPublicRegion(game) {
         const table = game.table;
         const communityCards = table.communityCards;
-        const bettingRound = game.getBettingRound();
-        const currentBet = game.getCurrentBet();
+        const bettingRound = game.bettingRound;
+        const currentBet = game.currentBet;
         const mainPot = table.pot.getMainPot();
         const sidePots = table.pot.getSidePots();
         const totalSidePot = sidePots.reduce((sum, pot) => sum + pot.amount, 0);
@@ -181,7 +181,7 @@ export class Display {
         if (!currentPlayer) return '';
 
         const remainingChips = currentPlayer.chips;
-        const callAmount = game.getCallAmount(currentPlayer);
+        const callAmount = game.currentBet - currentPlayer.getCurrentBet();
         const holeCards = currentPlayer.getHoleCards().map(card => `【${card.toString()}】`).join('');
 
         let output = `\n${this.divider}\n`;
@@ -290,15 +290,15 @@ export class Display {
 
                 switch (cmd.type) {
                     case CommandType.BET:
-                        const betAmount = game.getMinBet();
+                        const betAmount = game.bigBlind;
                         cmdText = `011.Bet-[下注: -${betAmount}$]`;
                         break;
                     case CommandType.CALL:
-                        const callAmount = game.getCallAmount(currentPlayer);
+                        const callAmount = game.currentBet - currentPlayer.getCurrentBet();
                         cmdText = `012.Call-[跟注: -${callAmount}$]`;
                         break;
                     case CommandType.RAISE:
-                        const minRaise = game.getMinRaise();
+                        const minRaise = game.currentBet + game.bigBlind;
                         cmdText = `013.Raise-[加注: -${minRaise}$]`;
                         break;
                     case CommandType.ALL_IN:
