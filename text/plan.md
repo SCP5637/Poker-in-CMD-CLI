@@ -24,9 +24,10 @@
    - CommandParser.js - 指令解析
    - CommandExecutor.js - 指令执行
    - Bet/Call/Raise/Fold/Check命令类
-————以实现，待测试验证
+————已完成功能和测试
 
 7. 实现界面系统：
+   - GameEngine.js - 游戏主进程
    - CLI.js - 命令行界面框架
    - Display.js - 页面渲染引擎
 ————待实现
@@ -41,11 +42,12 @@
 ————待实现
 
 00.  制作一套AI行动逻辑和AI的决策方式生成训练器
-   - AIgenerator.js - 
-   - AIrank.js - 
-   - AItrainer.js -
-   - IntelligenceList.json -
-   - MasterAI.json -
+   - AIgenerator.js - AI参数生成器
+   - AIrank.js - AI排序器
+   - AItrainer.js - AI训练器
+   - AIPlayer.js - AI决策引擎
+   - IntelligenceList.json - AI参数列表存储
+   - MasterAI.json - AI排序存储
 ————待实现
 
 ## 文件结构与功能实现
@@ -65,10 +67,10 @@
   - `update()`: 更新游戏状态
   - `render()`: 渲染游戏界面
   - `handleGameOver()`: 处理游戏结束逻辑
-  - `pause()`: 暂停游戏
+  <!-- - `pause()`: 暂停游戏
   - `resume()`: 恢复游戏
   - `saveState()`: 保存游戏状态
-  - `loadState()`: 加载游戏状态
+  - `loadState()`: 加载游戏状态 -->
 
 #### Card.js
 - 实现扑克牌类，表示单张扑克牌
@@ -402,6 +404,78 @@
   ]
 }
 ```
+
+#### AIPlayer.js
+- 实现AI玩家类，继承自Player类，负责AI的决策行为
+- 属性：
+  - `aiConfig`: AI配置参数对象，包含7个行为参数
+  - `gameState`: 当前游戏状态引用
+  - `decisionWeights`: 各种决策的权重计算结果
+  - `actionHistory`: AI的行动历史记录
+- 方法：
+  - `makeDecision()`: 根据当前状态和AI参数做出决策
+    - 分析当前游戏状态
+    - 计算各种行动的权重
+    - 根据权重概率选择行动
+  - `calculateHandStrength()`: 计算当前手牌强度
+    - 基于evaluateValue参数
+    - 使用HandEvaluator评估牌力
+    - 考虑潜在牌型
+  - `calculateBluffProbability()`: 计算诈唬概率
+    - 基于bluffValue参数
+    - 考虑场上形势
+    - 评估诈唬成功率
+  - `calculatePotOdds()`: 计算底池赔率
+    - 基于economyValue参数
+    - 计算跟注成本与底池比率
+    - 评估期望收益
+  - `determineRaiseAmount()`: 确定加注金额
+    - 基于fierceValue参数
+    - 计算合适的加注范围
+    - 根据激进程度调整
+  - `evaluateAllInSituation()`: 评估全押时机
+    - 基于deadlineValue参数
+    - 分析筹码状况
+    - 计算全押收益
+  - `shouldEscape()`: 判断是否应该退出游戏
+    - 基于escapeValue参数
+    - 评估盈亏状况
+    - 计算退出概率
+  - `getRandomAction()`: 获取随机行动
+    - 基于randomValue参数
+    - 在可选行动中随机选择
+  - `updateActionHistory(action)`: 更新行动历史
+    - 记录所有决策和结果
+    - 用于后续分析和学习
+  - `analyzeOpponents()`: 分析对手行为
+    - 记录对手模式
+    - 调整策略
+
+- 决策流程：
+  1. 收集信息
+     - 当前手牌和公共牌
+     - 底池大小和当前注额
+     - 玩家位置和筹码情况
+     - 对手历史行为
+  
+  2. 计算基础概率
+     - 手牌强度(evaluateValue)
+     - 诈唬机会(bluffValue)
+     - 底池赔率(economyValue)
+  
+  3. 调整决策权重
+     - 根据激进程度(fierceValue)
+     - 考虑全押时机(deadlineValue)
+     - 评估退出条件(escapeValue)
+  
+  4. 引入随机因素
+     - 基于randomValue参数
+     - 在保持策略的同时增加不可预测性
+  
+  5. 执行最终决策
+     - 选择权重最高的行动
+     - 确定具体操作参数（如加注金额）
+     - 更新行动历史
 
 #### AI行为参数说明
 
