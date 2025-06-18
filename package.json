@@ -24,7 +24,7 @@
         "t5": "node src/npmtest/test5-utils.js",
 
         "tCommand": "node src/npmtest/test6-command.js",
-        "t6": "node src/npmtest/test6-command.js",
+        "t6": "node src/npmtest/test6-commands.js",
 
         "tRun": "node src/npmtest/test6_1-fullGameRun.js",
         "t6.1": "node src/npmtest/test6_1-fullGameRun.js",
