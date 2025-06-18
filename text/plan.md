@@ -363,7 +363,7 @@
   - `calculateDotRate(ai, initialChips, finalChips)`: 计算单个AI的dotRate
     - 公式：(finalChips + initialChips) / initialChips
   - `updateAIStats()`: 更新AI统计数据
-    - 将新的dotRate与历史数据平均
+    - 将新的dotRate记录进dotRateCollection,计算新的均值覆盖dotRate
     - 更新IntelligenceList.json
 
 #### IntelligenceList.json
@@ -392,7 +392,6 @@
 
 #### MasterAI.json
 - 存储表现最佳和最差的AI配置
-- 用于后续分析和AI进化
 - 结构示例：
 ```json
 {
@@ -411,7 +410,6 @@
   - `aiConfig`: AI配置参数对象，包含7个行为参数
   - `gameState`: 当前游戏状态引用
   - `decisionWeights`: 各种决策的权重计算结果
-  - `actionHistory`: AI的行动历史记录
 - 方法：
   - `makeDecision()`: 根据当前状态和AI参数做出决策
     - 分析当前游戏状态
@@ -444,12 +442,7 @@
   - `getRandomAction()`: 获取随机行动
     - 基于randomValue参数
     - 在可选行动中随机选择
-  - `updateActionHistory(action)`: 更新行动历史
-    - 记录所有决策和结果
-    - 用于后续分析和学习
-  - `analyzeOpponents()`: 分析对手行为
-    - 记录对手模式
-    - 调整策略
+
 
 - 决策流程：
   1. 收集信息
