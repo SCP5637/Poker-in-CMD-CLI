@@ -24,24 +24,26 @@
    - CommandParser.js - 指令解析
    - CommandExecutor.js - 指令执行
    - Bet/Call/Raise/Fold/Check命令类
-————已完成功能和测试
+   新加入功能:
+   - Next/Exit/Quit游戏进程类
+————已完成部分功能和测试，新家功能待补充
 
-7. 实现界面系统：
+1. 实现界面系统：
    - GameEngine.js - 游戏主进程
    - CLI.js - 命令行界面框架
    - Display.js - 页面渲染引擎
 ————待实现
 
-8. 完善交互流程：
+1. 完善交互流程：
    - 指令与游戏状态同步
    - 动态页面更新
    - 输入反馈机制
 ————待实现
 
-9. 集成测试和调试
+1. 集成测试和调试
 ————待实现
 
-00.  制作一套AI行动逻辑和AI的决策方式生成训练器
+1.   制作一套AI行动逻辑和AI的决策方式生成训练器
    - AIgenerator.js - AI参数生成器
    - AIrank.js - AI排序器
    - AItrainer.js - AI训练器
@@ -252,6 +254,21 @@
 - 实现看牌命令
 - 方法：
   - `execute(game)`: 执行看牌命令
+
+#### NextCommand.js
+- 实现进入下一轮命令
+- 方法：
+  - `execute(game)`: 执行进入下一轮命令
+
+#### QuitCommand.js
+- 实现退出当前游戏命令
+- 方法：
+  - `execute(game)`: 执行退出当前游戏命令
+
+#### ExitCommand.js
+- 实现退出游戏(结束进程)命令
+- 方法：
+- `execute(game)`: 执行退出游戏(结束进程)命令
 
 ### 工具类 (src/utils/)
 
