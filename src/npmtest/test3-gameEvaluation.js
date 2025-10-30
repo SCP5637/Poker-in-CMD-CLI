@@ -540,13 +540,19 @@ function testPokerHands() {
     
     // 5.1 随机手牌比较
     console.log("\n5.1 随机手牌比较：");
-    testRandomPokerHands();
+    const testRun = 5;
+    for(let i=1; i<=testRun; i++) {
+        console.log(`\n--- 测试轮次 ${i} ---`);
+        testRandomPokerHands();
+    }
+    // console.log("\n5.1 随机手牌比较：");
+    // testRandomPokerHands();
     
     // 5.2 同牌型不同牌值比较
-    console.log("\n5.2 同牌型不同牌值比较：");
-    testSameRankDifferentValues();
+    // console.log("\n5.2 同牌型不同牌值比较：");
+    // testSameRankDifferentValues();
     
-    console.log("\n德州扑克手牌比较测试完成");
+    // console.log("\n德州扑克手牌比较测试完成");
 }
 
 // 运行所有测试
