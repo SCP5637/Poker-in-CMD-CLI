@@ -1,413 +1,338 @@
-import { GameState, GameStateDescription } from '../core/Game.js';
-import { PlayerStatus } from '../core/Player.js';
-import { CommandType } from '../commands/CommandParser.js';
+import { GameStateDescription } from '../core/Game.js';
+import { HandRanking } from '../poker/HandRanking.js';
 
 /**
- * Display类 - 负责游戏界面的渲染
+ * 显示管理器
+ * 负责渲染游戏界面的各个区域
  */
 export class Display {
     /**
-     * 构造函数
-     * @param {object} commandManager - 命令管理器实例
+     * 创建显示管理器
+     * @param {Game} game - 游戏实例
      */
-    constructor(commandManager) {
-        this.commandManager = commandManager;
-        this.regions = {
-            data: '',
-            public: '',
-            private: '',
-            settlement: '',
-            command: ''
-        };
-        this.divider = '————————————————————————————————————————————————————————————';
-    }
-
-    /**
-     * 清空控制台
-     */
-    clearConsole() {
-        console.clear();
-    }
-
-    /**
-     * 更新游戏状态
-     * @param {object} game - 游戏实例
-     */
-    updateGameState(game) {
+    constructor(game) {
         this.game = game;
+        this.regions = {};
     }
 
     /**
      * 渲染数据区域
-     * @param {object} game - 游戏实例
-     * @returns {string} - 渲染后的数据区域文本
+     * 显示游戏进程、轮次、玩家筹码和下注行动
      */
-    renderDataRegion(game) {
-        const table = game.table;
-        const players = table.players;
-        const currentRound = game.currentRound;
-        const totalRounds = 4; // 固定为4轮：翻牌前、翻牌、转牌、河牌
-        const gameState = GameStateDescription[game.state];
+    renderDataRegion() {
+        if (!this.game || !this.game.table) {
+            return '';
+        }
 
-        let output = `${this.divider}\n`;
-        output += `[GameState:${gameState}] | [GameRound:${currentRound}/${totalRounds}]\n`;
+        let output = this.createSeparator();
+        // 游戏状态和轮次信息
+        const roundInfo = this.getRoundInfo();
+        let gameStateText = GameStateDescription[this.game.state] || this.game.state;
+        output += `[GameState: ${gameStateText}] | ${roundInfo}\n`;
 
-        // 显示所有玩家信息
-        players.forEach((player, index) => {
-            if (!player) return;
-
-            const isCurrentPlayer = index === game.currentPlayerPosition;
-            const prefix = isCurrentPlayer ? 'YOU:     ' : `Player${index}: `;
-            const blindStatus = this.getBlindStatus(table, index);
-            const chips = player.chips;
-            const action = this.getPlayerActionText(player);
-            const bet = player.getCurrentBet();
-
-            output += `${prefix} ${player.name}${blindStatus}|[$$:${chips}]|[Action:${action}]|[here$:${bet}]\n`;
+        // 玩家信息
+        this.game.table.players.forEach((player, index) => {
+            if (player) {
+                const isDealer = index === this.game.table.dealerPosition ? '(D) ' : '';
+                const isSmallBlind = index === this.game.table.getSmallBlindPosition() ? '(SB) ' : '';
+                const isBigBlind = index === this.game.table.getBigBlindPosition() ? '(BB) ' : '';
+                const blindInfo = isDealer + isSmallBlind + isBigBlind;
+                
+                const action = this.getPlayerAction(player);
+                output += `Player${index}: ${player.name}${blindInfo}|[$$: ${player.chips}]|[Action: ${action}]|[here$: ${player.currentBet}]\n`;
+            }
         });
 
-        output += `${this.divider}\n`;
+        output += this.createSeparator();
         return output;
     }
 
     /**
-     * 获取玩家的盲注状态
-     * @param {object} table - 牌桌实例
-     * @param {number} playerIndex - 玩家索引
-     * @returns {string} - 盲注状态文本
+     * 获取轮次信息
+     * @returns {string} 轮次信息字符串
      */
-    getBlindStatus(table, playerIndex) {
-        if (playerIndex === table.smallBlindPosition) {
-            return '(小盲注)';
-        } else if (playerIndex === table.bigBlindPosition) {
-            return '(大盲注)';
-        } else if (playerIndex === table.dealerPosition) {
-            return '(庄家)';
+    getRoundInfo() {
+        if (!this.game || !this.game.table) {
+            return '[GameRound: 0/0]';
         }
-        return '';
+        
+        // 计算游戏轮次信息
+        const roundNumber = Math.floor(this.game.table.dealerPosition / this.game.table.players.length) + 1;
+        const totalRounds = this.game.table.players.length;
+        return `[GameRound: ${roundNumber}/${totalRounds}]`;
     }
 
     /**
-     * 获取玩家行动文本
-     * @param {object} player - 玩家实例
-     * @returns {string} - 行动文本
+     * 获取玩家行动信息
+     * @param {Player} player - 玩家
+     * @returns {string} 行动信息
      */
-    getPlayerActionText(player) {
-        if (player.status === PlayerStatus.ALL_IN) {
-            return 'all-in';
-        } else if (player.status === PlayerStatus.FOLDED) {
-            return 'fold';
-        } else if (player.lastAction) {
-            return player.lastAction;
+    getPlayerAction(player) {
+        if (!player) return 'Unknown';
+        
+        switch (player.status) {
+            case 'folded':
+                return 'Fold';
+            case 'all-in':
+                return 'All-in';
+            case 'active':
+                return 'Active';
+            case 'out':
+                return 'Out';
+            default:
+                return 'Waiting';
         }
-        return '等待中';
     }
 
     /**
      * 渲染公共展示区域
-     * @param {object} game - 游戏实例
-     * @returns {string} - 渲染后的公共展示区域文本
+     * 显示公共牌和当前注额信息
      */
-    renderPublicRegion(game) {
-        const table = game.table;
-        const communityCards = table.communityCards;
-        const bettingRound = game.bettingRound;
-        const currentBet = game.currentBet;
-        const mainPot = table.pot.getMainPot();
-        const sidePots = table.pot.getSidePots();
-        const totalSidePot = sidePots.reduce((sum, pot) => sum + pot.amount, 0);
-
-        let output = `\n${this.divider}\n`;
-        output += `[${bettingRound}:${currentBet}$] | [底池:${mainPot}$]`;
-        
-        if (totalSidePot > 0) {
-            output += ` | [边池:${totalSidePot}$]`;
+    renderPublicRegion() {
+        if (!this.game || !this.game.table) {
+            return '';
         }
-        
-        output += `\n${this.divider}\n\n`;
-        output += `                Table: `;
 
-        // 显示公共牌
-        if (communityCards.length === 0) {
-            output += `暂无公共牌`;
-        } else {
-            for (let i = 0; i < 5; i++) {
-                if (i < communityCards.length) {
-                    output += `【${communityCards[i].toString()}】`;
+        let output = this.createSeparator();
+        // 注额和底池信息
+        output += `[${this.getRoundName()}: ${this.game.currentBet}$] | [底池: ${this.game.table.pot.getTotalAmount()}$] | [边池: ${this.getSidePotAmount()}$]\n`;
+        output += this.createSeparator();
+
+        // 公共牌
+        output += '\n';
+        output += '                                Table: ';
+        if (this.game.table.communityCards.length > 0) {
+            this.game.table.communityCards.forEach(card => {
+                output += `【${card.toString()}】`;
+            });
+        }
+
+        // 未翻开的牌用?表示
+        const totalCommunityCards = 5;
+        const remainingCards = totalCommunityCards - this.game.table.communityCards.length;
+        for (let i = 0; i < remainingCards; i++) {
+            output += '【?】';
+        }
+        output += '\n\n';
+
+        // 玩家手牌
+        this.game.table.players.forEach((player, index) => {
+            if (player && player.status !== 'folded') {
+                // 在结算阶段显示所有玩家的手牌，否则隐藏
+                if ((this.game.state === 'finished' || this.game.state === 'showdown') && player.holeCards && player.holeCards.length >= 2) {
+                    output += `player${index}：【${player.holeCards[0].toString()}】【${player.holeCards[1].toString()}】\n`;
                 } else {
-                    output += `【?】`;
+                    output += `player${index}：【？】【？】\n`;
                 }
+            } else if (player && player.status === 'folded') {
+                output += `player${index}：FOLD\n`;
             }
-        }
+        });
 
-        output += `\n\n${this.divider}\n`;
-
-        // 如果是摊牌阶段，显示所有玩家的手牌
-        if (game.state === GameState.SHOWDOWN) {
-            table.players.forEach((player, index) => {
-                if (!player) return;
-                
-                if (player.status === PlayerStatus.FOLDED) {
-                    output += `${player.name}：FOLD(弃牌后不参与所以不展示开牌)\n`;
-                } else {
-                    const cards = player.getHoleCards().map(card => `【${card.toString()}】`).join('');
-                    output += `${player.name}：${cards}\n`;
-                }
-            });
-        } else {
-            // 非摊牌阶段，只显示其他玩家的背面牌
-            table.players.forEach((player, index) => {
-                if (!player || index === game.currentPlayerPosition) return;
-                
-                if (player.status === PlayerStatus.FOLDED) {
-                    output += `${player.name}：FOLD\n`;
-                } else {
-                    output += `${player.name}：【?】【?】\n`;
-                }
-            });
-        }
-
-        output += `${this.divider}\n`;
+        output += this.createSeparator();
         return output;
     }
 
     /**
-     * 渲染私人展示区域
-     * @param {object} game - 游戏实例
-     * @returns {string} - 渲染后的私人展示区域文本
+     * 获取轮次名称
+     * @returns {string} 轮次名称
      */
-    renderPrivateRegion(game) {
-        const currentPlayer = game.getCurrentPlayer();
-        if (!currentPlayer) return '';
+    getRoundName() {
+        switch (this.game.table.currentRound) {
+            case 'preflop': return '翻牌前';
+            case 'flop': return '翻牌';
+            case 'turn': return '转牌';
+            case 'river': return '河牌';
+            default: return '游戏';
+        }
+    }
 
-        const remainingChips = currentPlayer.chips;
-        const callAmount = game.currentBet - currentPlayer.getCurrentBet();
-        const holeCards = currentPlayer.getHoleCards().map(card => `【${card.toString()}】`).join('');
+    /**
+     * 获取边池金额
+     * @returns {number} 边池金额
+     */
+    getSidePotAmount() {
+        if (!this.game || !this.game.table || !this.game.table.pot) {
+            return 0;
+        }
+        
+        // 计算边池总金额
+        const sidePots = this.game.table.pot.getSidePots();
+        if (!sidePots || sidePots.length === 0) {
+            return 0;
+        }
+        
+        return sidePots.reduce((total, pot) => total + pot.amount, 0);
+    }
 
-        let output = `\n${this.divider}\n`;
-        output += `[remain:$${remainingChips}] | [跟注所需:$${callAmount}]\n`;
-        output += `${this.divider}\n`;
-        output += `                YOUR CARDS: ${holeCards}\n`;
-        output += `${this.divider}\n`;
-
+    /**
+     * 渲染私人展示区域
+     * 显示玩家手牌和筹码信息
+     */
+    renderPrivateRegion() {
+        let output = this.createSeparator();
+        
+        if (!this.game || !this.game.table) {
+            output += '[remain: 0] | [跟注所需: 0]\n';
+            output += this.createSeparator();
+            output += '                                YOUR CARDS: 【?】【?】\n';
+            output += this.createSeparator();
+            return output;
+        }
+        
+        // 获取当前玩家（默认为位置0的玩家）
+        const currentPlayer = this.game.getCurrentPlayer();
+        
+        if (currentPlayer) {
+            const remainingChips = currentPlayer.chips;
+            const callAmount = this.game.currentBet - currentPlayer.currentBet;
+            output += `[remain: $${remainingChips}] | [跟注所需: $${Math.max(0, callAmount)}]\n`;
+            
+            output += this.createSeparator();
+            
+            // 只有在玩家有手牌时才显示手牌
+            if (currentPlayer.holeCards && currentPlayer.holeCards.length >= 2) {
+                output += `                                YOUR CARDS: 【${currentPlayer.holeCards[0].toString()}】【${currentPlayer.holeCards[1].toString()}】\n`;
+            } else {
+                // 隐藏手牌信息
+                output += '                                YOUR CARDS: 【?】【?】\n';
+            }
+        } else {
+            // 如果没有当前玩家，显示位置0的玩家信息
+            const defaultPlayer = this.game.table.players[0];
+            if (defaultPlayer) {
+                const remainingChips = defaultPlayer.chips;
+                const callAmount = this.game.currentBet - defaultPlayer.currentBet;
+                output += `[remain: $${remainingChips}] | [跟注所需: $${Math.max(0, callAmount)}]\n`;
+                
+                output += this.createSeparator();
+                
+                // 只有在当前是该玩家行动时才显示手牌
+                if (defaultPlayer.holeCards && defaultPlayer.holeCards.length >= 2) {
+                    output += `                                YOUR CARDS: 【${defaultPlayer.holeCards[0].toString()}】【${defaultPlayer.holeCards[1].toString()}】\n`;
+                } else {
+                    // 隐藏手牌信息
+                    output += '                                YOUR CARDS: 【?】【?】\n';
+                }
+            } else {
+                output += '[remain: 0] | [跟注所需: 0]\n';
+                output += this.createSeparator();
+                output += '                                YOUR CARDS: 【?】【?】\n';
+            }
+        }
+        
+        output += this.createSeparator();
         return output;
     }
 
     /**
      * 渲染结算页面
-     * @param {object} game - 游戏实例
-     * @returns {string} - 渲染后的结算页面文本
+     * 摊牌后显示结算详情
      */
-    renderSettlementRegion(game) {
-        if (game.state !== GameState.SHOWDOWN && game.state !== GameState.FINISHED) {
-            return ''; // 如果不是结算或结束状态，不显示任何内容
+    renderSettlementRegion() {
+        let output = this.createSeparator();
+        if (this.game.state === 'finished') {
+            output += '结算详细:\n';
+            // 显示赢家信息
+            const winners = this.game.getWinners();
+            if (winners && winners.length > 0) {
+                output += `[主池: ${this.game.getLastPotAmount()}$]{\n`;
+                winners.forEach(winnerInfo => {
+                    const player = winnerInfo.player;
+                    output += `    ${player.name} [+${winnerInfo.amount}$] !Winner!\n`;
+                });
+                output += '}\n';
+            }
+        } else if (this.game.state === 'showdown') {
+            output += '[正在结算...]\n';
+        } else {
+            output += '[等待进入结算...]\n';
         }
-
-        const winners = game.getWinners();
-        const mainPot = game.table.pot.getMainPot();
-        const sidePots = game.table.pot.getSidePots();
-        const tips = this.getRandomTip();
-
-        let output = `\n${this.divider}\n`;
-        output += `结算详细:\n`;
-
-        // 主池结算
-        output += `[主池:${mainPot}$]{\n`;
-        game.table.players.forEach(player => {
-            if (!player) return;
-            
-            const isWinner = winners.some(w => w.player === player && w.potIndex === 0);
-            const amount = isWinner ? `+${winners.find(w => w.player === player && w.potIndex === 0).amount}$` : `-${player.getCurrentBet()}$`;
-            const winnerTag = isWinner ? ' !Winner!' : '';
-            
-            output += `    ${player.name} [${amount}]${winnerTag}\n`;
-        });
-        output += `}\n`;
-
-        // 边池结算
-        sidePots.forEach((sidePot, index) => {
-            output += `[边池${index + 1}:${sidePot.amount}$]{\n`;
-            sidePot.contributors.forEach(playerId => {
-                const player = game.table.getPlayerById(playerId);
-                if (!player) return;
-                
-                const isWinner = winners.some(w => w.player === player && w.potIndex === index + 1);
-                const amount = isWinner ? `+${winners.find(w => w.player === player && w.potIndex === index + 1).amount}$` : `-${player.getCurrentBet()}$`;
-                const winnerTag = isWinner ? ' !Winner!' : '';
-                
-                output += `    ${player.name} [${amount}]${winnerTag}\n`;
-            });
-            output += `}\n`;
-        });
-
-        output += `Tips:${tips}\n`;
-        output += `${this.divider}\n`;
-
+        output += this.createSeparator();
         return output;
-    }
-
-    /**
-     * 获取随机提示
-     * @returns {string} - 随机提示文本
-     */
-    getRandomTip() {
-        const tips = [
-            "德州扑克不仅是运气，更是技巧和心理的较量。",
-            "观察对手的行为模式，可能会发现他们的弱点。",
-            "有时候，最好的策略是知道何时该弃牌。",
-            "不要因为已经投入了筹码就不愿意放弃一手牌。",
-            "耐心是德州扑克中最重要的美德之一。",
-            "了解位置的重要性可以大大提高你的胜率。",
-            "记住，即使是职业选手也会有失误的时候。",
-            "不要让情绪影响你的决策，保持冷静。",
-            "学会计算底池赔率可以帮助你做出更好的决策。",
-            "有时候，诈唬是必要的，但不要过度使用。",
-            "所有，或者一无所有",
-            "haochi",
-            "zhua",
-            "你找到真正的面壁者了吗？"
-        ];
-        return tips[Math.floor(Math.random() * tips.length)];
     }
 
     /**
      * 渲染可执行指令区域
-     * @param {object} game - 游戏实例
-     * @returns {string} - 渲染后的可执行指令区域文本
+     * 根据游戏状态显示可用命令
      */
-    renderCommandRegion(game) {
-        const availableCommands = this.commandManager.getAvailableActionCommands();
-        const currentPlayer = game.getCurrentPlayer();
-
-        let output = `\n${this.divider}\n`;
-        output += `[Command:]\n`;
-
-        // 显示可用的游戏命令
-        if (availableCommands.length > 0 && currentPlayer) {
-            availableCommands.forEach(cmd => {
-                let description = '';
-                let cmdText = '';
-
-                switch (cmd.type) {
-                    case CommandType.BET:
-                        const betAmount = game.bigBlind;
-                        cmdText = `011.Bet-[下注: -${betAmount}$]`;
-                        break;
-                    case CommandType.CALL:
-                        const callAmount = game.currentBet - currentPlayer.getCurrentBet();
-                        cmdText = `012.Call-[跟注: -${callAmount}$]`;
-                        break;
-                    case CommandType.RAISE:
-                        const minRaise = game.currentBet + game.bigBlind;
-                        cmdText = `013.Raise-[加注: -${minRaise}$]`;
-                        break;
-                    case CommandType.ALL_IN:
-                        const allInAmount = currentPlayer.chips;
-                        cmdText = `014.All-in-[全下: -${allInAmount}$]`;
-                        break;
-                    case CommandType.CHECK:
-                        cmdText = `015.Check-[过牌]`;
-                        break;
-                    case CommandType.FOLD:
-                        cmdText = `016.Fold-[弃牌]`;
-                        break;
-                }
-
-                if (cmdText) {
-                    output += `${cmdText}\n`;
-                }
-            });
-        }
-
-        // 添加退出和结束游戏命令
-        output += `\n000.Exit-[强制退出](关闭程序)(隐藏)\n`;
-        output += `\n099.EndGame-[结束当前游戏](结束当前游戏实例,并回到主页面)\n`;
-        output += `${this.divider}\n`;
-        output += `$: (此处输入指令代号，输入三位数字指令头以进行交互，输入内容不合适则提示)\n`;
-        output += `${this.divider}\n`;
-
-        return output;
-    }
-
-    /**
-     * 渲染主页面
-     * @returns {string} - 渲染后的主页面文本
-     */
-    renderMainPage() {
-        let output = `${this.divider}\n`;
-        output += `德州扑克命令行版 - 主页面\n\n`;
-        output += `001.创建游戏\n`;
-        output += `002.测试模式(待考虑实现)\n`;
-        output += `003.统计(待考虑实现)\n`;
-        output += `004.其他拓展功能(待考虑功能与新模块，如德扑变体，联网人人对战等)\n\n`;
-        output += `000.Exit\n`;
-        output += `${this.divider}\n`;
-        output += `$: `;
-        return output;
-    }
-
-    /**
-     * 渲染游戏设置页面
-     * @param {object} settings - 当前设置
-     * @returns {string} - 渲染后的游戏设置页面文本
-     */
-    renderGameSetupPage(settings) {
-        const { playerCount = 3, playerNames = [], initialChips = 1000, bigBlind = 20 } = settings;
-
-        let output = `${this.divider}\n`;
-        output += `游戏设置页面\n\n`;
-        output += `091.玩家人数：${playerCount} (默认3，包括玩家在内，剩余为AI)(可填范围2-8)\n`;
-        output += `092.玩家名设置：\n`;
+    renderCommandRegion() {
+        let output = this.createSeparator();
         
-        // 显示当前玩家名设置
-        for (let i = 0; i < playerCount; i++) {
-            const name = playerNames[i] || `Player${i}`;
-            output += `    Player${i}: ${name}\n`;
+        // 显示当前操作的玩家
+        const currentPlayer = this.game.getCurrentPlayer();
+        if (currentPlayer && this.game.state === 'betting') {
+            output += `[${currentPlayer.name} Command:]\n`;
+        } else {
+            output += '[Command:]\n';
         }
 
-        output += `093.初始筹码：${initialChips} (默认1000)(可填范围300-10000)\n`;
-        output += `094.起始大盲注：${bigBlind} (默认20，小盲注为大盲注的一半)(可填范围，100以内能被2整除的数)\n\n`;
-        output += `090.确认创建\n\n`;
-        output += `000.返回主页面\n`;
-        output += `${this.divider}\n`;
-        output += `$: `;
+        // 根据游戏状态显示不同的命令
+        switch (this.game.state) {
+            case 'waiting':
+                output += '001.创建游戏\n';
+                output += '000.Exit-[强制退出]\n';
+                break;
+            case 'betting':
+                const currentBet = this.game.currentBet;
+                const playerCurrentBet = currentPlayer ? currentPlayer.currentBet : 0;
+                
+                output += '011.Bet-[下注]\n';
+                
+                // 跟注命令：当前有下注且玩家需要跟注时可用
+                if (currentBet > playerCurrentBet) {
+                    output += '012.Call-[跟注]\n';
+                }
+                
+                output += '013.Raise-[加注]\n';
+                output += '014.All-in-[全下]\n';
+                
+                // 过牌命令：当前无下注或玩家已跟注到当前下注额时可用
+                if (currentBet === playerCurrentBet) {
+                    output += '015.Check-[过牌]\n';
+                }
+                
+                output += '016.Fold-[弃牌]\n';
+                output += '000.Exit-[强制退出]\n';
+                break;
+            case 'showdown':
+            case 'finished':
+                output += '091.Next-[继续下一轮游戏]\n';
+                output += '099.EndGame-[结束当前游戏]\n';
+                output += '000.Exit-[强制退出]\n';
+                break;
+            default:
+                output += '000.Exit-[强制退出]\n';
+        }
+
+        output += this.createSeparator();
+        output += '$: ';
         return output;
     }
 
     /**
      * 渲染完整页面
-     * @param {object} game - 游戏实例
+     * 按顺序调用各区域渲染方法
      */
-    renderAll(game) {
-        this.clearConsole();
-        
-        if (!game) {
-            // 如果没有游戏实例，显示主页面
-            console.log(this.renderMainPage());
-            return;
-        }
-
-        // 渲染游戏各个区域
-        console.log(this.renderDataRegion(game));
-        console.log(this.renderPublicRegion(game));
-        console.log(this.renderPrivateRegion(game));
-        console.log(this.renderSettlementRegion(game));
-        console.log(this.renderCommandRegion(game));
+    renderAll() {
+        let output = '';
+        output += this.renderDataRegion();
+        output += '\n';
+        output += this.renderPublicRegion();
+        output += '\n';
+        output += this.renderPrivateRegion();
+        output += '\n';
+        output += this.renderSettlementRegion();
+        output += '\n';
+        output += this.renderCommandRegion();
+        return output;
     }
 
     /**
-     * 显示错误消息
-     * @param {string} message - 错误消息
+     * 创建分隔线
+     * @returns {string} 分隔线
      */
-    displayError(message) {
-        console.log(`\n错误: ${message}\n`);
-    }
-
-    /**
-     * 显示成功消息
-     * @param {string} message - 成功消息
-     */
-    displaySuccess(message) {
-        console.log(`\n${message}\n`);
+    createSeparator() {
+        return '————————————————————————————————————————————————————————————\n';
     }
 }

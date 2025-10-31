@@ -1,62 +1,43 @@
-import { PlayerAction } from '../core/Game.js';
-
 /**
- * 跟注命令类
- * 处理玩家的跟注行为
+ * 跟注命令
+ * 处理玩家跟注操作
  */
 export class CallCommand {
     /**
-     * 创建一个跟注命令
-     */
-    constructor() {
-        // 跟注命令不需要额外参数
-    }
-
-    /**
-     * 验证跟注是否有效
-     * @param {Game} game - 游戏实例
-     * @param {Player} player - 当前玩家
-     * @returns {boolean} 如果跟注有效返回true
-     * @throws {Error} 如果跟注无效
-     */
-    validate(game, player) {
-        // 检查是否有下注可以跟
-        if (game.currentBet <= player.getCurrentBet()) {
-            throw new Error('Nothing to call (use check instead)');
-        }
-
-        return true;
-    }
-
-    /**
      * 执行跟注命令
      * @param {Game} game - 游戏实例
-     * @returns {boolean} 如果命令执行成功返回true
-     * @throws {Error} 如果命令执行失败
      */
     execute(game) {
-        const currentPlayer = game.getCurrentPlayer();
-        if (!currentPlayer) {
-            throw new Error('No current player');
-        }
-
-        // 验证跟注的有效性
-        this.validate(game, currentPlayer);
-
-        // 执行跟注操作
         try {
-            game.handlePlayerAction(game.currentPlayerPosition, PlayerAction.CALL);
-            return true;
-        } catch (error) {
-            throw new Error(`Failed to execute call: ${error.message}`);
-        }
-    }
+            // 检查游戏状态是否允许跟注
+            if (game.state !== 'betting') {
+                return {
+                    success: false,
+                    message: '当前游戏状态下无法跟注'
+                };
+            }
 
-    /**
-     * 获取命令的字符串表示
-     * @returns {string} 命令的字符串表示
-     */
-    toString() {
-        return 'Call the current bet';
+            // 检查当前玩家是否可以行动
+            const currentPlayer = game.getCurrentPlayer();
+            if (!currentPlayer) {
+                return {
+                    success: false,
+                    message: '无法确定当前玩家'
+                };
+            }
+
+            // 执行跟注操作
+            game.handlePlayerAction(game.currentPlayerPosition, 'call');
+
+            return {
+                success: true,
+                message: '成功跟注'
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: `跟注失败: ${error.message}`
+            };
+        }
     }
 }

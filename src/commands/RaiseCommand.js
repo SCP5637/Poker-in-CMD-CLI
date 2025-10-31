@@ -1,75 +1,60 @@
-import { PlayerAction } from '../core/Game.js';
-
 /**
- * 加注命令类
- * 处理玩家的加注行为
+ * 加注命令
+ * 处理玩家加注操作
  */
 export class RaiseCommand {
     /**
-     * 创建一个加注命令
-     * @param {number} amount - 加注金额（最终的下注总额）
-     */
-    constructor(amount) {
-        this.amount = amount;
-    }
-
-    /**
-     * 验证加注金额是否有效
-     * @param {Game} game - 游戏实例
-     * @param {Player} player - 当前玩家
-     * @returns {boolean} 如果加注金额有效返回true
-     * @throws {Error} 如果加注金额无效
-     */
-    validate(game, player) {
-        // 检查是否有足够的筹码
-        const additionalAmount = this.amount - player.getCurrentBet();
-        if (additionalAmount > player.chips) {
-            throw new Error('Insufficient chips for raise');
-        }
-
-        // 检查是否已经有人下注
-        if (game.currentBet === 0) {
-            throw new Error('Cannot raise when there is no bet (use bet instead)');
-        }
-
-        // 检查是否满足最小加注要求
-        const minRaiseAmount = game.currentBet + game.minRaise;
-        if (this.amount < minRaiseAmount) {
-            throw new Error(`Raise must be at least ${minRaiseAmount} (current bet + min raise)`);
-        }
-
-        return true;
-    }
-
-    /**
      * 执行加注命令
      * @param {Game} game - 游戏实例
-     * @returns {boolean} 如果命令执行成功返回true
-     * @throws {Error} 如果命令执行失败
+     * @param {number} amount - 加注金额
      */
-    execute(game) {
-        const currentPlayer = game.getCurrentPlayer();
-        if (!currentPlayer) {
-            throw new Error('No current player');
-        }
-
-        // 验证加注的有效性
-        this.validate(game, currentPlayer);
-
-        // 执行加注操作
+    execute(game, amount) {
         try {
-            game.handlePlayerAction(game.currentPlayerPosition, PlayerAction.RAISE, this.amount);
-            return true;
-        } catch (error) {
-            throw new Error(`Failed to execute raise: ${error.message}`);
-        }
-    }
+            // 检查游戏状态是否允许加注
+            if (game.state !== 'betting') {
+                return {
+                    success: false,
+                    message: '当前游戏状态下无法加注'
+                };
+            }
 
-    /**
-     * 获取命令的字符串表示
-     * @returns {string} 命令的字符串表示
-     */
-    toString() {
-        return `Raise to ${this.amount} chips`;
+            // 检查当前玩家是否可以行动
+            const currentPlayer = game.getCurrentPlayer();
+            if (!currentPlayer) {
+                return {
+                    success: false,
+                    message: '无法确定当前玩家'
+                };
+            }
+
+            // 检查加注金额是否有效
+            if (!amount || amount <= 0) {
+                return {
+                    success: false,
+                    message: '加注金额必须大于0'
+                };
+            }
+
+            // 检查玩家是否有足够的筹码
+            if (amount > currentPlayer.chips) {
+                return {
+                    success: false,
+                    message: '筹码不足'
+                };
+            }
+
+            // 执行加注操作
+            game.handlePlayerAction(game.currentPlayerPosition, 'raise', amount);
+
+            return {
+                success: true,
+                message: `成功加注 ${amount} 筹码`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: `加注失败: ${error.message}`
+            };
+        }
     }
 }

@@ -1,76 +1,82 @@
 /**
- * 日志工具
- * 用于记录游戏过程中的各种信息
+ * 日志记录器
+ * 用于记录游戏过程中的输入和输出
  */
+import { appendFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
-// 日志级别
-const LOG_LEVELS = {
-    DEBUG: 0,
-    INFO: 1,
-    ERROR: 2
-};
+export class Logger {
+    static logFile = join(process.cwd(), 'text', 'latest.log');
+    
+    /**
+     * 记录用户输入
+     * @param {string} input - 用户输入
+     */
+    static logInput(input) {
+        const timestamp = new Date().toISOString();
+        const logEntry = `[${timestamp}] INPUT: ${input}\n`;
+        appendFileSync(this.logFile, logEntry);
+    }
+    
+    /**
+     * 记录游戏输出
+     * @param {string} output - 游戏输出
+     */
+    static logOutput(output) {
+        const logEntry = `[OUTPUT]:
+${output}
 
-class Logger {
-    constructor() {
-        this.logLevel = LOG_LEVELS.INFO; // 默认日志级别
+
+`;
+        appendFileSync(this.logFile, logEntry);
+    }
+    
+    /**
+     * 清除日志文件
+     */
+    static clearLog() {
+        writeFileSync(this.logFile, '');
+    }
+    
+    /**
+     * 记录普通日志
+     * @param {string} message - 日志消息
+     */
+    static log(message) {
+        console.log(`[LOG] ${new Date().toISOString()} - ${message}`);
     }
 
-    setLogLevel(level) {
-        if (typeof level === 'string') {
-            level = level.toUpperCase();
-            if (LOG_LEVELS[level] !== undefined) {
-                this.logLevel = LOG_LEVELS[level];
-            }
+    /**
+     * 记录错误日志
+     * @param {string} message - 错误消息
+     */
+    static error(message) {
+        console.error(`[ERROR] ${new Date().toISOString()} - ${message}`);
+    }
+
+    /**
+     * 记录信息日志
+     * @param {string} message - 信息消息
+     */
+    static info(message) {
+        console.info(`[INFO] ${new Date().toISOString()} - ${message}`);
+    }
+
+    /**
+     * 记录调试日志
+     * @param {string} message - 调试消息
+     */
+    static debug(message) {
+        if (process.env.DEBUG) {
+            console.debug(`[DEBUG] ${new Date().toISOString()} - ${message}`);
         }
     }
 
-    debug(message) {
-        if (this.logLevel <= LOG_LEVELS.DEBUG) {
-            console.log(`[DEBUG] ${message}`);
-        }
-    }
-
-    info(message) {
-        if (this.logLevel <= LOG_LEVELS.INFO) {
-            console.log(`[INFO] ${message}`);
-        }
-    }
-
-    error(message) {
-        if (this.logLevel <= LOG_LEVELS.ERROR) {
-            console.error(`[ERROR] ${message}`);
-        }
-    }
-
-    // 记录游戏状态
-    logGameState(game) {
-        if (!game) return;
-        
-        this.info(`当前游戏状态：${game.state}`);
-        if (game.table) {
-            // 计算实际玩家数量（非null值）
-            const activePlayers = game.table.players.filter(player => player !== null);
-            this.info(`玩家数量：${activePlayers.length}`);
-            this.info('玩家状态：');
-            game.table.players.forEach(player => {
-                if (player !== null) {
-                    this.info(`  ${player.name}: 筹码=${player.chips}, 状态=${player.status}`);
-                }
-            });
-        }
-    }
-
-    // 记录玩家动作
-    logPlayerAction(player, action, amount) {
-        if (!player) return;
-        
-        let message = `玩家 ${player.name} 执行动作：${action}`;
-        if (amount !== undefined) {
-            message += ` (${amount}筹码)`;
-        }
-        this.info(message);
+    /**
+     * 记录警告日志
+     * @param {string} message - 警告消息
+     */
+    static warn(message) {
+        console.warn(`[WARN] ${new Date().toISOString()} - ${message}`);
     }
 }
-
-// 导出单例实例
-export const logger = new Logger();

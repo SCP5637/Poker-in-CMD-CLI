@@ -75,6 +75,53 @@ export class Pot {
     }
 
     /**
+     * 根据多个全押玩家创建多个边池
+     * @param {Array<Player>} allInPlayers - 全押玩家列表，按筹码数升序排列
+     */
+    createMultipleSidePots(allInPlayers) {
+        // 获取所有玩家的贡献并按贡献金额排序
+        const playerContributions = Array.from(this.playerContributions.entries())
+            .map(([player, contribution]) => ({ player, contribution }))
+            .sort((a, b) => a.contribution - b.contribution);
+        
+        if (playerContributions.length === 0) {
+            return;
+        }
+        
+        // 重置边池
+        this.sidePots = [];
+        
+        // 计算每个级别的金额
+        let previousContribution = 0;
+        let mainPotAmount = 0;
+        
+        // 为每个不同的贡献级别创建池
+        for (let i = 0; i < playerContributions.length; i++) {
+            const { player, contribution } = playerContributions[i];
+            const levelAmount = contribution - previousContribution;
+            
+            if (levelAmount > 0) {
+                // 计算这个级别中有多少玩家参与
+                const eligiblePlayers = playerContributions.slice(i).map(entry => entry.player);
+                const potAmount = levelAmount * eligiblePlayers.length;
+                
+                if (this.sidePots.length === 0) {
+                    // 第一个池是主池
+                    this.mainPot = potAmount;
+                } else {
+                    // 后续的是边池
+                    this.sidePots.push({
+                        amount: potAmount,
+                        eligiblePlayers: eligiblePlayers
+                    });
+                }
+            }
+            
+            previousContribution = contribution;
+        }
+    }
+
+    /**
      * 获取总底池金额
      * @returns {number} 总底池金额（主池+所有边池）
      */

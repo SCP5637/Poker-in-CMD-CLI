@@ -1,86 +1,67 @@
 /**
- * 输入验证工具
+ * 输入验证工具类
  * 用于验证游戏中的各种输入
  */
-
-import { COMMAND_TYPES, ERROR_MESSAGES } from './Constants.js';
-import { logger } from './Logger.js';
-
 export class Validator {
-    constructor(game) {
-        this.game = game;
+    /**
+     * 检查金额是否有效
+     * @param {number} amount - 要检查的金额
+     * @returns {boolean} 如果金额有效返回true，否则返回false
+     */
+    static isValidAmount(amount) {
+        return typeof amount === 'number' && amount >= 0 && Number.isFinite(amount);
     }
 
     /**
-     * 验证金额是否有效
-     * @param {number} amount 金额
-     * @returns {boolean} 是否有效
+     * 检查玩家名称是否有效
+     * @param {string} name - 要检查的玩家名称
+     * @returns {boolean} 如果名称有效返回true，否则返回false
      */
-    isValidAmount(amount) {
-        if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
-            logger.error(ERROR_MESSAGES.INVALID_AMOUNT);
-            return false;
-        }
-        return true;
+    static isValidPlayerName(name) {
+        return typeof name === 'string' && name.length > 0 && name.length <= 20;
     }
 
     /**
-     * 验证玩家名称是否有效
-     * @param {string} name 玩家名称
-     * @returns {boolean} 是否有效
+     * 检查命令是否有效
+     * @param {string} command - 要检查的命令
+     * @returns {boolean} 如果命令有效返回true，否则返回false
      */
-    isValidPlayerName(name) {
-        if (typeof name !== 'string' || name.length < 2 || name.length > 16) {
-            logger.error(ERROR_MESSAGES.INVALID_PLAYER_NAME);
-            return false;
-        }
-        return true;
+    static isValidCommand(command) {
+        // 命令应该是3位数字
+        return typeof command === 'string' && /^\d{3}$/.test(command);
     }
 
     /**
-     * 验证命令是否有效
-     * @param {string} command 命令
-     * @returns {boolean} 是否有效
+     * 检查玩家数量是否有效
+     * @param {number} count - 玩家数量
+     * @returns {boolean} 如果数量有效返回true，否则返回false
      */
-    isValidCommand(command) {
-        // 检查命令是否是命令名称（如"CALL"）
-        if (Object.keys(COMMAND_TYPES).includes(command)) {
-            return true;
-        }
-        
-        // 检查命令是否是命令代码（如"012"）
-        const validCommandCodes = Object.values(COMMAND_TYPES);
-        if (validCommandCodes.includes(command)) {
-            return true;
-        }
-        
-        logger.error(ERROR_MESSAGES.INVALID_COMMAND);
-        return false;
+    static isValidPlayerCount(count) {
+        return Number.isInteger(count) && count >= 2 && count <= 9;
     }
 
     /**
-     * 验证玩家数量是否有效
-     * @param {number} count 玩家数量
-     * @returns {boolean} 是否有效
+     * 检查盲注设置是否有效
+     * @param {number} smallBlind - 小盲注
+     * @param {number} bigBlind - 大盲注
+     * @returns {boolean} 如果设置有效返回true，否则返回false
      */
-    isValidPlayerCount(count) {
-        if (typeof count !== 'number' || count < 2 || count > 8) {
-            logger.error(ERROR_MESSAGES.INVALID_PLAYER_COUNT);
-            return false;
-        }
-        return true;
+    static isValidBlindSettings(smallBlind, bigBlind) {
+        return this.isValidAmount(smallBlind) && 
+               this.isValidAmount(bigBlind) && 
+               smallBlind > 0 && 
+               bigBlind > 0 && 
+               bigBlind > smallBlind &&
+               bigBlind <= 100 &&
+               bigBlind % 2 === 0;
     }
 
     /**
-     * 验证盲注是否有效
-     * @param {number} blind 盲注金额
-     * @returns {boolean} 是否有效
+     * 检查筹码数量是否有效
+     * @param {number} chips - 筹码数量
+     * @returns {boolean} 如果数量有效返回true，否则返回false
      */
-    isValidBlind(blind) {
-        if (typeof blind !== 'number' || blind <= 0 || blind > 100 || blind % 2 !== 0) {
-            logger.error(ERROR_MESSAGES.INVALID_BLIND);
-            return false;
-        }
-        return true;
+    static isValidChipAmount(chips) {
+        return Number.isInteger(chips) && chips >= 300 && chips <= 10000;
     }
 }

@@ -1,73 +1,60 @@
-import { PlayerAction } from '../core/Game.js';
-
 /**
- * 下注命令类
- * 处理玩家的下注行为
+ * 下注命令
+ * 处理玩家下注操作
  */
 export class BetCommand {
     /**
-     * 创建一个下注命令
-     * @param {number} amount - 下注金额
-     */
-    constructor(amount) {
-        this.amount = amount;
-    }
-
-    /**
-     * 验证下注金额是否有效
-     * @param {Game} game - 游戏实例
-     * @param {Player} player - 当前玩家
-     * @returns {boolean} 如果下注金额有效返回true
-     * @throws {Error} 如果下注金额无效
-     */
-    validate(game, player) {
-        // 检查是否有足够的筹码
-        if (this.amount > player.chips) {
-            throw new Error('Insufficient chips for bet');
-        }
-
-        // 检查是否满足最小下注要求（大盲注）
-        if (this.amount < game.table.bigBlind) {
-            throw new Error(`Bet must be at least the big blind (${game.table.bigBlind})`);
-        }
-
-        // 检查是否已经有人下注
-        if (game.currentBet > 0) {
-            throw new Error('Cannot bet when there is already a bet (use raise instead)');
-        }
-
-        return true;
-    }
-
-    /**
      * 执行下注命令
      * @param {Game} game - 游戏实例
-     * @returns {boolean} 如果命令执行成功返回true
-     * @throws {Error} 如果命令执行失败
+     * @param {number} amount - 下注金额
      */
-    execute(game) {
-        const currentPlayer = game.getCurrentPlayer();
-        if (!currentPlayer) {
-            throw new Error('No current player');
-        }
-
-        // 验证下注的有效性
-        this.validate(game, currentPlayer);
-
-        // 执行下注操作
+    execute(game, amount) {
         try {
-            game.handlePlayerAction(game.currentPlayerPosition, PlayerAction.BET, this.amount);
-            return true;
-        } catch (error) {
-            throw new Error(`Failed to execute bet: ${error.message}`);
-        }
-    }
+            // 检查游戏状态是否允许下注
+            if (game.state !== 'betting') {
+                return {
+                    success: false,
+                    message: '当前游戏状态下无法下注'
+                };
+            }
 
-    /**
-     * 获取命令的字符串表示
-     * @returns {string} 命令的字符串表示
-     */
-    toString() {
-        return `Bet ${this.amount} chips`;
+            // 检查当前玩家是否可以下注
+            const currentPlayer = game.getCurrentPlayer();
+            if (!currentPlayer) {
+                return {
+                    success: false,
+                    message: '无法确定当前玩家'
+                };
+            }
+
+            // 检查下注金额是否有效
+            if (!amount || amount <= 0) {
+                return {
+                    success: false,
+                    message: '下注金额必须大于0'
+                };
+            }
+
+            // 检查玩家是否有足够的筹码
+            if (amount > currentPlayer.chips) {
+                return {
+                    success: false,
+                    message: '筹码不足'
+                };
+            }
+
+            // 执行下注操作
+            game.handlePlayerAction(game.currentPlayerPosition, 'bet', amount);
+
+            return {
+                success: true,
+                message: `成功下注 ${amount} 筹码`
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: `下注失败: ${error.message}`
+            };
+        }
     }
 }

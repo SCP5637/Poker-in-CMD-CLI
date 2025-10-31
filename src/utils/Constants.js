@@ -2,68 +2,74 @@
  * 游戏常量定义
  */
 
-// 牌型排名
-export const HAND_RANKINGS = {
-    HIGH_CARD: 1,
-    ONE_PAIR: 2,
-    TWO_PAIR: 3,
-    THREE_OF_A_KIND: 4,
-    STRAIGHT: 5,
-    FLUSH: 6,
-    FULL_HOUSE: 7,
-    FOUR_OF_A_KIND: 8,
-    STRAIGHT_FLUSH: 9,
-    ROYAL_FLUSH: 10
+/**
+ * 牌型排名枚举
+ * @enum {number}
+ */
+export const HandRankings = {
+    HIGH_CARD: 1,        // 高牌
+    ONE_PAIR: 2,         // 一对
+    TWO_PAIR: 3,         // 两对
+    THREE_OF_A_KIND: 4,  // 三条
+    STRAIGHT: 5,         // 顺子
+    FLUSH: 6,            // 同花
+    FULL_HOUSE: 7,       // 葫芦
+    FOUR_OF_A_KIND: 8,   // 四条
+    STRAIGHT_FLUSH: 9,   // 同花顺
+    ROYAL_FLUSH: 10      // 皇家同花顺
 };
 
-// 游戏状态
-export const GAME_STATES = {
-    WAITING: 'WAITING',
-    PREFLOP: 'PREFLOP',
-    FLOP: 'FLOP',
-    TURN: 'TURN',
-    RIVER: 'RIVER',
-    SHOWDOWN: 'SHOWDOWN',
-    FINISHED: 'FINISHED'
+/**
+ * 玩家状态枚举
+ * @enum {string}
+ */
+export const PlayerStatus = {
+    ACTIVE: 'active',     // 活跃
+    FOLDED: 'folded',     // 已弃牌
+    ALL_IN: 'all-in',     // 全押
+    OUT: 'out'            // 破产
 };
 
-// 玩家状态
-export const PLAYER_STATUS = {
-    ACTIVE: 'ACTIVE',
-    FOLDED: 'FOLDED',
-    ALL_IN: 'ALL_IN',
-    OUT: 'OUT'
+/**
+ * 游戏状态枚举
+ * @enum {string}
+ */
+export const GameStates = {
+    WAITING: 'waiting',   // 等待开始
+    BETTING: 'betting',   // 下注中
+    SHOWDOWN: 'showdown', // 摊牌
+    FINISHED: 'finished'  // 已结束
 };
 
-// 命令类型
-export const COMMAND_TYPES = {
-    BET: '011',
-    CALL: '012',
-    RAISE: '013',
-    ALL_IN: '014',
-    CHECK: '015',
-    FOLD: '016',
-    PLAYER_AMOUNT: '091',
-    PLAYER_NAME_SETTING: '092',
-    START_CHIPS: '093',
-    BIG_BLIND_SETTING: '094',
-    END_GAME: '099',
-    EXIT: '000'
+/**
+ * 命令类型枚举
+ * @enum {string}
+ */
+export const CommandTypes = {
+    GAME_CONTROL: 'game_control',     // 游戏控制命令 (000-009)
+    GAME_ACTION: 'game_action',       // 游戏行动命令 (010-099)
+    SETTINGS: 'settings'              // 设置命令 (090-099)
 };
 
-// 默认设置
-export const DEFAULT_SETTINGS = {
-    PLAYER_COUNT: 3,
-    INITIAL_CHIPS: 1000,
-    BIG_BLIND: 20,
-    SMALL_BLIND: 10
+/**
+ * 下注轮次枚举
+ * @enum {string}
+ */
+export const BettingRounds = {
+    PREFLOP: 'preflop',   // 翻牌前
+    FLOP: 'flop',         // 翻牌
+    TURN: 'turn',         // 转牌
+    RIVER: 'river'        // 河牌
 };
 
-// 错误消息
-export const ERROR_MESSAGES = {
-    INVALID_AMOUNT: '无效的金额',
-    INVALID_COMMAND: '无效的命令',
-    INVALID_PLAYER_COUNT: '玩家数量必须在2-8之间',
-    INVALID_BLIND: '盲注必须是100以内的偶数',
-    INVALID_PLAYER_NAME: '玩家名称必须在2-16个字符之间'
+/**
+ * 错误消息常量
+ * @enum {string}
+ */
+export const ErrorMessages = {
+    INVALID_BET: '下注金额无效',
+    NOT_ENOUGH_CHIPS: '筹码不足',
+    INVALID_COMMAND: '无效命令',
+    NOT_YOUR_TURN: '不是你的回合',
+    GAME_NOT_STARTED: '游戏尚未开始'
 };

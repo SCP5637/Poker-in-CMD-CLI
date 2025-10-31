@@ -240,6 +240,16 @@ export class Table {
     }
 
     /**
+     * 显示所有公共牌
+     */
+    revealAllCommunityCards() {
+        while (this.communityCards.length < 5) {
+            const card = this.deck.deal(1)[0];
+            this.communityCards.push(card);
+        }
+    }
+
+    /**
      * 获取牌桌状态的字符串表示
      * @returns {string} 牌桌状态的字符串表示
      */

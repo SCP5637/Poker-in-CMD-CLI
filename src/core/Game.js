@@ -132,10 +132,11 @@ export class Game {
             case PlayerAction.CALL:
                 const callAmount = this.currentBet - player.getCurrentBet();
                 if (callAmount > 0) {
-                    if (callAmount > player.chips) {
+                    if (callAmount >= player.chips) {
                         // 如果玩家筹码不够跟注，就全下
-                        player.bet(player.chips);
-                        player.setStatus(PlayerStatus.ALL_IN);
+                        const allInAmount = player.chips;
+                        player.bet(allInAmount);
+                        this.createSidePotsIfNeeded();
                     } else {
                         player.bet(callAmount);
                     }
@@ -149,31 +150,55 @@ export class Game {
                 if (amount < this.table.bigBlind) {
                     throw new Error(`下注金额必须至少为大盲注 (${this.table.bigBlind})`);
                 }
-                if (amount > player.chips) {
-                    throw new Error('筹码不足');
+                if (amount >= player.chips) {
+                    // 全押
+                    const allInAmount = player.chips;
+                    player.bet(allInAmount);
+                    this.createSidePotsIfNeeded();
+                } else {
+                    player.bet(amount);
+                    this.currentBet = amount;
+                    this.minRaise = amount;
+                    this.lastRaisePosition = position;
                 }
-                player.bet(amount);
-                this.currentBet = amount;
-                this.minRaise = amount;
-                this.lastRaisePosition = position;
                 break;
 
             case PlayerAction.RAISE:
                 if (this.currentBet === 0) {
-                    throw new Error('没有下注时无法加注');
+                    // 如果当前没有下注，则视为下注
+                    if (amount < this.table.bigBlind) {
+                        throw new Error(`下注金额必须至少为大盲注 (${this.table.bigBlind})`);
+                    }
+                    if (amount >= player.chips) {
+                        // 全押
+                        const allInAmount = player.chips;
+                        player.bet(allInAmount);
+                        this.createSidePotsIfNeeded();
+                    } else {
+                        player.bet(amount);
+                        this.currentBet = amount;
+                        this.minRaise = amount;
+                        this.lastRaisePosition = position;
+                    }
+                } else {
+                    // 正常加注
+                    const raiseTotal = this.currentBet + this.minRaise;
+                    if (amount < raiseTotal) {
+                        throw new Error(`加注金额必须至少为 ${raiseTotal}`);
+                    }
+                    const raiseAmount = amount - player.getCurrentBet();
+                    if (raiseAmount >= player.chips) {
+                        // 全押
+                        const allInAmount = player.chips;
+                        player.bet(allInAmount);
+                        this.createSidePotsIfNeeded();
+                    } else {
+                        player.bet(raiseAmount);
+                        this.currentBet = amount;
+                        this.minRaise = amount - (this.currentBet - raiseAmount); // 修正最小加注额计算
+                        this.lastRaisePosition = position;
+                    }
                 }
-                const raiseTotal = this.currentBet + this.minRaise;
-                if (amount < raiseTotal) {
-                    throw new Error(`加注金额必须至少为 ${raiseTotal}`);
-                }
-                const raiseAmount = amount - player.getCurrentBet();
-                if (raiseAmount > player.chips) {
-                    throw new Error('筹码不足');
-                }
-                player.bet(raiseAmount);
-                this.currentBet = amount;
-                this.minRaise = amount - this.currentBet;
-                this.lastRaisePosition = position;
                 break;
 
             default:
@@ -181,6 +206,19 @@ export class Game {
         }
 
         this.moveToNextPlayer();
+    }
+
+    /**
+     * 检查是否需要创建边池（当有玩家全押时）
+     */
+    createSidePotsIfNeeded() {
+        // 获取所有全押玩家
+        const allInPlayers = this.table.players.filter(p => p !== null && p.status === PlayerStatus.ALL_IN);
+        
+        if (allInPlayers.length > 0) {
+            // 重新计算底池结构
+            this.table.pot.createMultipleSidePots(allInPlayers);
+        }
     }
 
     /**
@@ -221,6 +259,15 @@ export class Game {
             return true;
         }
         
+        // 检查是否所有剩余的活跃玩家都已全押
+        const allInPlayers = activePlayers.filter(p => p.status === PlayerStatus.ALL_IN);
+        const nonAllInPlayers = activePlayers.filter(p => p.status !== PlayerStatus.ALL_IN);
+        
+        // 如果只剩一个非全押玩家或没有非全押玩家，则回合结束
+        if (nonAllInPlayers.length <= 1) {
+            return true;
+        }
+        
         // 如果当前没有下注（所有人都check）且所有玩家都已经行动过一次，轮次结束
         if (this.currentBet === 0 && this.lastRaisePosition === -1) {
             // 检查是否所有玩家都已经行动过
@@ -247,6 +294,19 @@ export class Game {
         const activePlayers = this.table.players.filter(p => p !== null && p.isInGame());
         if (activePlayers.length <= 1) {
             this.finishRound();
+            return;
+        }
+
+        // 检查是否所有玩家都已全押，如果是则直接进入摊牌
+        const allInPlayers = activePlayers.filter(p => p.status === PlayerStatus.ALL_IN);
+        const nonAllInPlayers = activePlayers.filter(p => p.status !== PlayerStatus.ALL_IN);
+        
+        // 如果所有玩家都全押了，直接进入摊牌
+        if (allInPlayers.length === activePlayers.length) {
+            // 所有玩家都已全押，直接进入摊牌
+            this.state = GameState.SHOWDOWN;
+            this.table.revealAllCommunityCards();
+            this.determineWinners();
             return;
         }
 
